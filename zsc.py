@@ -25,9 +25,6 @@ CLASSES = {
     'memoryview' : mem_create
 }
 
-KNOWN = {
-    'Note' : '[Note{}]'
-}
 
 class Analyzer(ast.NodeVisitor):
     def __init__(self, indent = 0, input_file = '', context = None):
@@ -37,6 +34,13 @@ class Analyzer(ast.NodeVisitor):
         self.context = context
         self.stack = []
         self.defined = []
+        self.zbrush = []
+        self.funcs = {}
+
+        if self.context:
+            self.input_file = self.context.input_file
+            self.defined = self.context.defined
+            self.funcs = self.context.funcs
 
     def format(self):
         "newline separated list, with tabs"
@@ -55,6 +59,19 @@ class Analyzer(ast.NodeVisitor):
     def tab(self, extra = 0):
         return '    ' * (self.indent + extra) 
 
+    def visit_Import(self,  node):
+
+        for name in node.names:
+            if 'zbrush' in name.name:
+                zname = name.name.split(".")[-1]
+                self.funcs[name.asname or name.name] = zname
+
+    def visit_ImportFrom(self, node):
+
+        if node.module == 'zbrush':
+            for name in node.names:
+                self.funcs[name.asname or name.name] = name.name
+
     def visit_FunctionDef(self, node):
 
         incoming_args = [j.arg for j in node.args.args]
@@ -62,24 +79,24 @@ class Analyzer(ast.NodeVisitor):
         if arg_string:
             arg_string = "\n{}, // args \n{}{}" .format(self.tab(1), self.tab(1), arg_string)
 
-        funcdef = '[RoutineDef, {},\n{{}}{}\n]'.format(node.name, arg_string)
+        funcdef = '[RoutineDef, {},\n{{}}{}'.format(node.name, arg_string)
         
-        b = ast.Interactive([i for i in node.body])
-        v = Analyzer(1, input_file=self.input_file, context=node)
-        v.defined = incoming_args
-        v.visit(b)
-        contents = v.format()
-
-        self.stack.append (funcdef.format(contents))
+        sub_parse = self.sub_parser(*node.body)
+        sub_parse.indent = self.indent + 1
+        self.stack.append ('')
+        self.stack.append ( funcdef.format(sub_parse.format()) )
+        self.stack.append ("]")
+        self.stack.append ('')
 
     def visit_Num(self, node):
-        self.stack.append( " {} ".format(node.n))
+        self.stack.append( "{}".format(node.n))
+
 
     def visit_Interactive(self, node):
         self.generic_visit(node)
 
     def visit_Str(self, node):
-        self.stack.append(' \"{}\" '.format(node.s))
+        self.stack.append('\"{}\"'.format(node.s))
 
     def visit_Name(self, node):
         self.stack.append("[Var, {}]".format(node.id))
@@ -97,17 +114,13 @@ class Analyzer(ast.NodeVisitor):
                 ast.Or:   '||'
             }[type(node.op)]
 
-            left = ast.Interactive([node.left])
-            L = Analyzer(input_file=self.input_file, context = node)
-            L.visit(left)
+            left = self.sub_parser(node.left)
+            right = self.sub_parser(node.right)
 
-            right = ast.Interactive([node.right])
-            R = Analyzer(input_file=self.input_file, context = node)
-            R.visit(right)
-
-            self.stack.append (f"{L.format_inline()} {op} {R.format_inline()}")
+            self.stack.append (f"{left.format_inline()} {op} {right.format_inline()}")
         except:
             self.abort("unknown operator", node)
+
     def visit_AugAssign(self, node):
         op = {
             ast.Add: 'Add',
@@ -122,60 +135,62 @@ class Analyzer(ast.NodeVisitor):
 
         target_var = node.target.id
         val = node.value
-        parser = ast.Interactive([val])
-        v = Analyzer(0, self.input_file, context=node)
-        v.visit(parser)
-        target_value = v.format_inline()
+
+        parser = self.sub_parser(val)
+        target_value = parser.format_inline()
 
         self.stack.append (f'[Var{opstring}, {target_var}, {target_value}]')
 
         
-    def visit_Call(self, node):
-        args = []
-        for each_arg in node.args:
-            b = ast.Interactive([each_arg])
-            v = FunctionAnalyzer()
-            v.visit(b)
-            args.extend(v.stack)
+    def format_mem_op(self, method):
+        m_name, _,  m_type = method.partition("_")
 
-        arg_string = ', '.join(args)
+        if m_type == 'string':
+            return  f'Mem{m_name.title()}String', None
+
+        typecode = {
+            'float': 0,
+            'char': 1,
+            'uchar': 2,
+            'short': 3,
+            'ushort': 4,
+            'long': 5,
+            'ulong': 6,
+            'fixed': 7
+        }.get(m_type, 0)
+        return f'Mem{m_name.title()}', typecode
+
+
+    def visit_Call(self, node):
+        
+        arg_parser = self.sub_parser(*node.args, func=True)
+        arg_string = arg_parser.format_inline()
         if arg_string:
-            arg_string =  ", " +  arg_string
+            arg_string = ", " + arg_string
 
         if isinstance(node.func, ast.Attribute):
-            # this is a method called on a memblock
-            method = node.func.attr
-            m_name, _,  m_type = method.partition("_")
-            _s = ''
-            typecode = ''
-            offset = ''
-            if len(node.args) > 1:
-                offset = f', {node.args[1].n}'
-            if m_type == 'string':
-               _s = "String"
-            m_name = f'Mem{m_name.title()}{_s}'
-            if not _s:
-                typecode = {
-                    'float': 0,
-                    'char': 1,
-                    'uchar': 2,
-                    'short': 3,
-                    'ushort': 4,
-                    'long': 5,
-                    'ulong': 6,
-                    'fixed': 7
-                }.get(m_type, 0)
+            # the only method calls are assumed to be on memory blocks
 
-                typecode = f", {typecode}" 
+            m_name, typecode = self.format_mem_op(node.func.attr)
+            
+            arg_parse = self.sub_parser(*node.args, func=True)
+            args = arg_parse.stack
+            if typecode:
+                args.insert(1, typecode)
+            tail  = ''
+            if args:
+                tail = ", ".join(args)
+                tail = ", " + tail
 
-            if m_name == 'write':
-                self.stack.append(f'[{m_name}, {node.func.value.id}, {node.args[0].n}{typecode}{offset}]')
+            if 'Write' in m_name:
+                self.stack.append(f'[{m_name}, {node.func.value.id}{tail}]')
             else:
-                self.stack.append(f'[{m_name}, {node.func.value.id}, {typecode}{offset}]')
+                self.stack.append(f'[{m_name}, {node.func.value.id}{tail}]')
             return
 
-        if node.func.id in KNOWN:
-            func_string = KNOWN[node.func.id].format(arg_string)
+        if node.func.id in self.funcs:
+            funcname = self.funcs.get(node.func.id) 
+            func_string = f'[{funcname}{arg_string}]'
         else:
             func_string = '[RoutineCall, {}{}]' .format(node.func.id, arg_string)
         self.stack.append(func_string)
@@ -185,10 +200,8 @@ class Analyzer(ast.NodeVisitor):
 
     def visit_Assign(self, node):
 
-        
         varname = (node.targets[0].id)
         varval = (node.value)
-
 
         if isinstance(varval, ast.Num):
             varval = varval.n
@@ -198,43 +211,53 @@ class Analyzer(ast.NodeVisitor):
             varval = "[Var, {}]".format(varval.id)
         elif isinstance(varval, ast.Call):
             if isinstance(varval.func, ast.Attribute):
-                parse_call = ast.Interactive([varval])
-                v  = FunctionAnalyzer(0, self.input_file, varval.func.attr)
-                v.visit(parse_call)
-                parsed = v.stack.pop()
-                if not 'Read' in parsed:
-                    self.abort('can only assign to a MemRead call', node)
 
+                if self.context:
+                    setter = 'VarSet'
+                else:
+                    setter = 'VarDef'
 
-                parse_args = ast.Interactive(varval.args)
-                a  = FunctionAnalyzer(0, self.input_file, varval.func.attr)
-                a.visit(parse_args)
-                parsed = a.format_inline()
-                self.stack.append(parsed)
+                caller = ", " + varval.func.value.id
+
+                if ("read_" not  in varval.func.attr and varval.func.attr not in self.funcs):
+                    self.abort("can only call zbrush functions or memory block functions in an assignment", node)
                 
+                if varval.func.attr in self.funcs:
+                    m_name = varval.func.attr
+                    typecode = None
+                    caller = ""
+                else:
+                    # it's a memory object functon
+                    m_name, typecode = self.format_mem_op(varval.func.attr)
+            
+                arg_parse = self.sub_parser(*varval.args, func=True)
+                args = arg_parse.stack
+                if typecode:
+                    args.insert(1, typecode)
+                tail  = ''
+                if args:
+                    tail = ", ".join(args)
+                    tail = ", " + tail
+
+               
                 
-                self.stack.append(parsed)
+                self.stack.append(f'[{setter}, {varname}, [{m_name}{caller}{tail}]]')
                 return
-
 
             else:
                 formatter = CLASSES.get(varval.func.id, False)
                 if formatter:
                     arg_list = []
-                    arg_parser = ast.Interactive(varval.args)
-                    v = Analyzer()
-                    v.visit(arg_parser)
-                    arg_list.extend(v.stack)
+                    arg_parser = self.sub_parser(*varval.args)
+                    arg_list.extend(arg_parser.stack)
                     self.stack.append( formatter(varname, *arg_list))
                     return
                 else:
                     self.abort("Can't assign a function call in ZBrush", varval)
-        elif isinstance(varval, ast.BinOp):
 
-            parser = ast.Interactive([varval])
-            v = Analyzer(input_file=self.input_file, context= self)
-            v.visit(parser)
-            varval = v.format_inline()
+        elif isinstance(varval, ast.BinOp):
+            parser = self.sub_parser(varval)
+            varval = parser.format_inline()
         else:
             self.abort("invalud assignment", varval)
         
@@ -265,33 +288,28 @@ class Analyzer(ast.NodeVisitor):
 
     
     def visit_If(self, node):
-        b = ast.Interactive([node.test])
-        v = Analyzer(0, input_file=self.input_file, context=node)
-        v.visit(b)
-        comp = ''.join(v.stack)
 
-        body = ast.Interactive(node.body)
-        v2 = Analyzer(context=node)
-        v2.visit(body)
+        test = self.sub_parser(node.test)
+        comp = ''.join(test.stack)
+
+        body = self.sub_parser(*node.body)
         INDENT = ("\n" + self.tab(1))
-        body_str = INDENT.join(v2.stack)
+        body_str = INDENT.join(body.stack)
         if body_str:
             body_str = f"{INDENT}, // then{INDENT}{body_str}" 
 
-        orelse = ast.Interactive(node.orelse )
-        v2 = Analyzer()
-        v2.visit(orelse)
-        else_str = INDENT.join(v2.stack)
+        orelse  = self.sub_parser(*node.orelse)
+        else_str = INDENT.join(orelse.stack)
         if else_str:
             else_str = f"{INDENT}, // else{INDENT}{else_str}"
 
-        self.stack.append(f"[If, {comp}, {body_str}{else_str}\n]")
+        self.stack.append('')
+        self.stack.append(f"[If, {comp}, {body_str}{else_str}")
+        self.stack.append(']')
         
     def visit_Expr(self, node):
-        b = ast.Interactive([node.value])
-        v = Analyzer()
-        v.visit(b)
-        comp = ''.join(v.stack)
+        sub_parser = self.sub_parser(node.value)
+        comp = ''.join(sub_parser.stack)
         self.stack.append(comp)
 
     def report(self):
@@ -303,9 +321,18 @@ class Analyzer(ast.NodeVisitor):
         error_line = self.input_file.splitlines()[node.lineno - 2: node.lineno + 1]
         raise ValueError ("Compile Error: {} in line {}".format(message, node.lineno), error_line )
 
+    def sub_parser(self, *args, **kwargs):
+        if kwargs.get('func'):
+            sub_parser = FunctionAnalyzer(context = self)
+        else:
+            sub_parser = Analyzer(context= self)
+        sub_parser.indent += 1
+        temp = ast.Interactive(list(args))
+        sub_parser.visit(temp)
+        return sub_parser
+
 
 class FunctionAnalyzer(Analyzer):
-
 
     def visit_Name(self, node):
         self.stack.append(node.id)
@@ -314,6 +341,7 @@ class FunctionAnalyzer(Analyzer):
 
 def compile(filename):
 
+    
 
     with open(filename, "r") as source:
         input_file = source.read()
@@ -324,4 +352,5 @@ def compile(filename):
     analyzer.report()
 
 
+    
 compile("c:/users/steve/desktop/dummy.py")

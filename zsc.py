@@ -89,20 +89,28 @@ class Analyzer(ast.NodeVisitor):
         self.stack.append ('')
 
     def visit_Num(self, node):
+        # numeric literals
         self.stack.append( "{}".format(node.n))
 
-
     def visit_Interactive(self, node):
+        # won't show up in raw code, used as a generic node
+        # container for sub-parsers
         self.generic_visit(node)
 
     def visit_Str(self, node):
+        # all string literals get double quotes
         self.stack.append('\"{}\"'.format(node.s))
 
     def visit_Name(self, node):
+        # Name objects = 'Var' 
+        # Q: when to use 'Val' instead?
+        # Q: should we use #character?
+
         self.stack.append("[Var, {}]".format(node.id))
 
     def visit_BinOp(self, node):
-
+        # math operations.
+        # Q: Do we want 'val' instead of 'var' here?
         try:
             op = {
                 ast.Add: '+',
@@ -119,9 +127,10 @@ class Analyzer(ast.NodeVisitor):
 
             self.stack.append (f"{left.format_inline()} {op} {right.format_inline()}")
         except:
-            self.abort("unknown operator", node)
+            self.abort("ZBrush does not support operator {}".format(node.op), node)
 
     def visit_AugAssign(self, node):
+        # python += etc.  
         op = {
             ast.Add: 'Add',
             ast.Sub: 'Sub',
@@ -131,7 +140,7 @@ class Analyzer(ast.NodeVisitor):
         try:
             opstring = op[type(node.op)]
         except:
-            self.abort("unknown assigment operator {node.op}", node)
+            self.abort("ZBrush does not support augmented operator {}".format(node.op), node)
 
         target_var = node.target.id
         val = node.value
@@ -143,7 +152,20 @@ class Analyzer(ast.NodeVisitor):
 
         
     def format_mem_op(self, method):
+        '''
+        helper method convert, eg, 
+            
+            some_mem_block.read_string(offset)
+
+        to
+
+            [MemReadString, offset]
+        '''
+
         m_name, _,  m_type = method.partition("_")
+
+        if m_name not in  ('read', 'write', 'resize', 'move', 'delete', 'multi_write', 'create_from_file'):
+            return None, None
 
         if m_type == 'string':
             return  f'Mem{m_name.title()}String', None
@@ -162,16 +184,48 @@ class Analyzer(ast.NodeVisitor):
 
 
     def visit_Call(self, node):
-        
+
+        is_attrib = isinstance(node.func, ast.Attribute)
+        is_zb = False  # is this a recognized call
+        is_mem_call = False
+  
+        if is_attrib:
+            owner_name = node.func.value.id
+            func_name = node.func.attr
+            is_mem_call = (owner_name != "zbrush")
+        else:
+            owner_name = ""
+            func_name = node.func.id
+
+        is_zb = owner_name == 'zbrush' or func_name in self.funcs
+
+        # collect the arguments              
         arg_parser = self.sub_parser(*node.args, func=True)
         arg_string = arg_parser.format_inline()
         if arg_string:
             arg_string = ", " + arg_string
 
-        if isinstance(node.func, ast.Attribute):
-            # the only method calls are assumed to be on memory blocks
+ 
+        if is_zb:
+            # it's a zbrush function.  de-alias in possible and return
+            if func_name in self.funcs:
+                func_name = self.funcs.get(node.func.id, func_name) 
+            func_string = f'[{func_name}{arg_string}]'
+            self.stack.append(func_string)
+            return
 
-            m_name, typecode = self.format_mem_op(node.func.attr)
+        if not is_mem_call:
+            # it's not a zbrush call or a memblock function,
+            # so we assume it's a routine call
+            func_string = '[RoutineCall, {}{}]' .format(func_name, arg_string)
+            self.stack.append(func_string)
+        
+        else:
+            # this is an operation on a mem block
+            m_name, typecode = self.format_mem_op(func_name)
+            if not m_name:
+                # this will fail on, eg, a random python imported function
+                self.abort(f"Unrecognized operation {owner_name}.{func_name}",  node)
             
             arg_parse = self.sub_parser(*node.args, func=True)
             args = arg_parse.stack
@@ -186,14 +240,9 @@ class Analyzer(ast.NodeVisitor):
                 self.stack.append(f'[{m_name}, {node.func.value.id}{tail}]')
             else:
                 self.stack.append(f'[{m_name}, {node.func.value.id}{tail}]')
-            return
+            
 
-        if node.func.id in self.funcs:
-            funcname = self.funcs.get(node.func.id) 
-            func_string = f'[{funcname}{arg_string}]'
-        else:
-            func_string = '[RoutineCall, {}{}]' .format(node.func.id, arg_string)
-        self.stack.append(func_string)
+  
 
     def visit_Delete(self, node):
         self.stack.append(f'[MemDelete, {node.targets[0].id}]')
@@ -229,6 +278,8 @@ class Analyzer(ast.NodeVisitor):
                 else:
                     # it's a memory object functon
                     m_name, typecode = self.format_mem_op(varval.func.attr)
+                    if not m_name:
+                        self.abort(f"Unrecognized memory operation {varval.func.attr}",  node)
             
                 arg_parse = self.sub_parser(*varval.args, func=True)
                 args = arg_parse.stack
@@ -259,7 +310,7 @@ class Analyzer(ast.NodeVisitor):
             parser = self.sub_parser(varval)
             varval = parser.format_inline()
         else:
-            self.abort("invalud assignment", varval)
+            self.abort("invalid assignment", varval)
         
         if not self.context and varval not in self.defined:
             setter = f'[VarDef, {varname}, {varval}]'

@@ -3,6 +3,7 @@
 import io
 import ast
 import logging
+import argparse
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler())
@@ -522,8 +523,12 @@ class Analyzer(ast.NodeVisitor):
 
 
 class FunctionAnalyzer(Analyzer):
+    """
+    a tweaked versions which preserves variable names
+    """
 
     def visit_Name(self, node):
+        # Q - should this use the # prefix?
         self.stack.append(node.id)
 
 
@@ -547,6 +552,22 @@ def compile(filename, out_filename = ''):
         output.write(f"/*\n{tp}\n{orig}\n*/\n\n")
         output.write(analyzer.format())
 
-    print (analyzer.format())
+    return out_filename, analyzer.format()
+
     
-compile("c:/users/steve/desktop/dummy.py")
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        prog = "zsc",
+        description = f'Python to ZScript transpiler ({VERSION})'
+    )
+    parser.add_argument("input", help="path to python source file")
+    parser.add_argument("--output", help="optional output file (otherwise, uses the same name as the input file with .txt extension)")
+    parser.add_argument("--show", help= "if true, print the transpiled file to stdout", action='store_true')
+
+    args = parser.parse_args()
+    output, result = compile(args.input, out_filename=args.output or '')
+
+    if args.show:
+        print (result)
+    else:
+        print (output)

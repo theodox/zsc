@@ -17,4 +17,4 @@ The first argument is always the path to a python file.  The output will be writ
 
 If the optional `--output`  argument is supplied, the file will be written to that path instead.
 
-If the optional `--show` flag is supplied, the transpiled file will be printed to stdoty
+If the optional `--show` flag is supplied, the transpiled file will be printed to stdout

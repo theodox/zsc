@@ -1829,16 +1829,15 @@ def ToolGetSubToolsCount(ToolIndex):
     pass
 
 
-def ToolLocateSubTool(Unique Subtool ID, Optional subtool index result):
+def ToolLocateSubTool(SubToolID, SubtoolIndex=None):
     """
     Locates a subtool by the specified unique ID
     Output: Returns the index of the located tool and subtool or -1 if error.
-
     """
     pass
 
 
-def ToolSelect(Tool Index(zero based).):
+def ToolSelect(SubToolIndex):
     """
     Selects the specified tool index
     Output: Returns zero if OK,  -1 if error.
@@ -1847,9 +1846,11 @@ def ToolSelect(Tool Index(zero based).):
     pass
 
 
-def ToolSetPath(Tool Index(zero based). If omited then use the currently selected tool., New Path. Path extension(such as .ztl) will be omited.):
+def ToolSetPath(SubToolIndex = None, NewPath = ""):
     """
     Sets the file path or name of the specified tool
+    If Tool Index  omited then use the currently selected tool.
+    The new tool path ignores extensions
     Output: Returns zero if OK,  -1 if error.
 
     """
@@ -1872,12 +1873,14 @@ def TransformSet(xPos, yPos, zPos, xScale, yScale, zScale, xRotate, yRotate, zRo
     pass
 
 
-def TransposeGet(Start xPos, Start yPos, Start zPos, End xPos, End yPos, End zPos, Action Line Length, x of red axis, y of red axis, z of red axis, x of green axis, y of green axis, z of green axis, x of blue axis, y of blue axis, z of blue axis):
+def TransposeGet(StarXPos, StartYPos, StartZPos, EndXPos, EndYPos, EndZPos,LineLength, RedAxisX, RedAxisY, RedAxisZ, GreenAxisX, GreenAxisY, GreenAxisZ, BlueAxisX, BlueAxisY, BlueAxisZ):
     """
     Gets current Transpose Action Line values.
 
     """
-    TransposeIsShown
+    pass
+
+def TransposeIsShown():
     """
     Returns status of transpose line
     Output: Returns 1 if shown,  zero if not.
@@ -1886,7 +1889,7 @@ def TransposeGet(Start xPos, Start yPos, Start zPos, End xPos, End yPos, End zPo
     pass
 
 
-def TransposeSet(Start xPos, Start yPos, Start zPos, End xPos, End yPos, End zPos, Action Line Length, x of red axis, y of red axis, z of red axis, x of green axis, y of green axis, z of green axis, x of blue axis, y of blue axis, z of blue axis):
+def TransposeSet(StarXPos, StartYPos, StartZPos, EndXPos, EndYPos, EndZPos,LineLength, RedAxisX, RedAxisY, RedAxisZ, GreenAxisX, GreenAxisY, GreenAxisZ, BlueAxisX, BlueAxisY, BlueAxisZ):
     """
     Sets current Transpose Action Line values.
 
@@ -1894,7 +1897,8 @@ def TransposeSet(Start xPos, Start yPos, Start zPos, End xPos, End yPos, End zPo
     pass
 
 
-def Val(Variable name):
+# this is probably not needed?
+def Val(Variable):
     """
     Evaluates the input and returns a numerical value
     Output: Value of the named variable
@@ -1903,46 +1907,47 @@ def Val(Variable name):
     pass
 
 
-def VarAdd(Variable name, Value To Add):
-    """
-    Adds a value to an existing variable
+# this is represented bu +=
+# def VarAdd(Variable name, Value To Add):
+#     """
+#     Adds a value to an existing variable
 
-    """
-    pass
-
-
-def VarDec(Variable name):
-    """
-    Subtracts 1 from the value of an existing variable
-
-    """
-    pass
+#     """
+#     pass
 
 
-def VarDef(Variable name, Variable defaultValue):
-    """
-    pass
+# def VarDec(Variable name):
+#     """
+#     Subtracts 1 from the value of an existing variable
 
-    defines a variable
-
-    """
-    pass
+#     """
+#     pass
 
 
-def VarDiv(Variable name, Value to Divide By):
-    """
-    Divides an existing variable by a value
+# def VarDef(Variable name, Variable defaultValue):
+#     """
+#     pass
 
-    """
-    pass
+#     defines a variable
+
+#     """
+#     pass
 
 
-def VarInc(Variable name):
-    """
-    Adds 1 to the value of an existing variable
+# def VarDiv(Variable name, Value to Divide By):
+#     """
+#     Divides an existing variable by a value
 
-    """
-    pass
+#     """
+#     pass
+
+
+# def VarInc(Variable name):
+#     """
+#     Adds 1 to the value of an existing variable
+
+#     """
+#     pass
 
 
 def VarListCopy(Destination list, Destination initial index, Source list, Source initial index, Number of items to copy. (if omitted or it is 0,  then all items will be copied)):
@@ -1953,19 +1958,19 @@ def VarListCopy(Destination list, Destination initial index, Source list, Source
     pass
 
 
-def VarLoad(Variable name, FileName, Verify only(1=Only Verify that a proper saved variable file exists,  0=(default)Verifies and loads values):
-            """
+def VarLoad(VariableName, FileName, VerifyOnly=0):
+    """
     Loads variable/s from a file
     Output: Number of loaded or verfied values
 
     """
-            pass
+    pass
 
-            def VarMul(Variable name, Value to Multiply):
-            """
-    Multiplies an existing variable by a value
+# def VarMul(Variable name, Value to Multiply):
+#         """
+#     Multiplies an existing variable by a value
 
-    """
+#     """
             VarSave, Variable name, FileName
             """
     Saves variable value/s to file
@@ -1974,14 +1979,14 @@ def VarLoad(Variable name, FileName, Verify only(1=Only Verify that a proper sav
     """
             pass
 
-            def VarSet(Variable name, New Value):
-            """
-    Sets the value of a named variable
+# def VarSet(Variable name, New Value):
+#     """
+#     Sets the value of a named variable
 
-    """
-            pass
+#     """
+#             pass
 
-            def VarSize(Variable name):
+def VarSize(Variable name):
             """
     Returns the number of items in a variable or in a list
     Output: The number of items in a list or 1 if it is a simple variable

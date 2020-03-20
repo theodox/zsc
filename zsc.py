@@ -1,4 +1,4 @@
-#zsc.py
+# zsc.py
 
 import io
 import ast
@@ -14,8 +14,9 @@ WARN_ON_COMPARISONS = True
 
 VERSION = '0.1.0'
 
+
 class Analyzer(ast.NodeVisitor):
-    def __init__(self, indent = 0, input_file = '', context = None):
+    def __init__(self, indent=0, input_file='', context=None):
         self.input_file = input_file
         self.contents = io.StringIO()
         self.indent = indent
@@ -24,7 +25,7 @@ class Analyzer(ast.NodeVisitor):
         self.defined = []
         self.zbrush = []
         self.funcs = {
-            'array' : 'VarDef'
+            'array': 'VarDef'
         }
 
         if self.context:
@@ -36,17 +37,16 @@ class Analyzer(ast.NodeVisitor):
         "newline separated list, with tabs"
         def yield_values():
             for s in self.stack:
-                yield self.tab() + s                
+                yield self.tab() + s
         return '\n'.join(yield_values())
 
-    
-    def format_inline(self, sep = ", "):
+    def format_inline(self, sep=", "):
         """ comma separated list"""
-        result =  sep.join(self.stack)
+        result = sep.join(self.stack)
         return result
 
-    def tab(self, extra = 0):
-        return '    ' * (self.indent + extra) 
+    def tab(self, extra=0):
+        return '    ' * (self.indent + extra)
 
     def visit_Import(self,  node):
 
@@ -81,9 +81,9 @@ class Analyzer(ast.NodeVisitor):
     def visit_For(self, node):
 
         iterator = node.iter
-        if not isinstance (iterator, ast.Call) or iterator.func.id not in ('range', 'xrange'):
+        if not isinstance(iterator, ast.Call) or iterator.func.id not in ('range', 'xrange'):
             self.abort("use range() to set loop iterations", node)
-        
+
         loop_max = iterator.args[0].n
         loop_var = node.target.id
 
@@ -92,11 +92,10 @@ class Analyzer(ast.NodeVisitor):
         loop_parser = self.sub_parser(*node.body)
 
         # loop body
-        loop_parser.indent += 1
         self.stack.append(loop_parser.format())
         self.stack.append(self.tab() + ",")
         self.stack.append(self.tab() + f"{loop_var}")
-        self.stack.append('] // loop end') 
+        self.stack.append('] // loop end')
 
     def visit_Continue(self, node):
         self.stack.append('[LoopContinue]')
@@ -111,15 +110,14 @@ class Analyzer(ast.NodeVisitor):
         """
         incoming_args = [j.arg for j in node.args.args]
         arg_string = ', '.join(incoming_args)
-        
-        self.stack.append ('') # space before defs for readability
+
+        self.stack.append('')  # space before defs for readability
 
         # prepend the docstring
         doc = ast.get_docstring(node)
-        if doc: 
+        if doc:
             for line in doc.split('\n'):
                 self.stack.append(f"// {line} ")
-
 
         self.stack.append('[RoutineDef, {},'.format(node.name))
         body_nodes = [e for e in node.body]
@@ -129,19 +127,19 @@ class Analyzer(ast.NodeVisitor):
             body_nodes = body_nodes[1:]
         sub_parse = self.sub_parser(*body_nodes)
         sub_parse.indent = self.indent + 1
-        self.stack.append ( sub_parse.format())    
-    
-        if arg_string:        
+        self.stack.append(sub_parse.format())
+
+        if arg_string:
             self.stack.append(f'{self.tab(1)}, // args ')
             self.stack.append(f'{self.tab(1)}{arg_string}')
-        self.stack.append (f"] // end {node.name}")
-        self.stack.append ('')
+        self.stack.append(f"] // end {node.name}")
+        self.stack.append('')
 
     def visit_Num(self, node):
         """
         numeric literals
         """
-        self.stack.append( "{}".format(node.n))
+        self.stack.append("{}".format(node.n))
 
     def visit_Interactive(self, node):
         """"
@@ -184,13 +182,14 @@ class Analyzer(ast.NodeVisitor):
             left = self.sub_parser(node.left)
             right = self.sub_parser(node.right)
 
-            self.stack.append (f"({left.format_inline(sep= ' ')} {op} {right.format_inline(sep = ' ')})")
+            self.stack.append(
+                f"({left.format_inline(sep= ' ')} {op} {right.format_inline(sep = ' ')})")
         except:
-            self.abort("ZBrush does not support operator {}".format(node.op), node)
+            self.abort(
+                "ZBrush does not support operator {}".format(node.op), node)
 
     def visit_BoolOp(self, node):
-                
-    
+
         op = {
             ast.Or: '||',
             ast.And:  '&& '
@@ -199,22 +198,19 @@ class Analyzer(ast.NodeVisitor):
         left = self.sub_parser(node.values[0])
         right = self.sub_parser(node.values[1])
 
-        self.stack.append (f'({left.format_inline(sep = " ")} {op} {right.format_inline(sep = " ")})')
-    
+        self.stack.append(
+            f'({left.format_inline(sep = " ")} {op} {right.format_inline(sep = " ")})')
 
     def visit_AugAssign(self, node):
         '''
         Convert python augmented assigns like
 
             variable += 5
-
         to
-
             [VarAdd, variable, 5]
-
         etc
         '''
-        
+
         op = {
             ast.Add: 'Add',
             ast.Sub: 'Sub',
@@ -224,7 +220,8 @@ class Analyzer(ast.NodeVisitor):
         try:
             opstring = op[type(node.op)]
         except:
-            self.abort("ZBrush does not support augmented operator {}".format(node.op), node)
+            self.abort(
+                "ZBrush does not support augmented operator {}".format(node.op), node)
 
         target_var = node.target.id
         val = node.value
@@ -232,13 +229,12 @@ class Analyzer(ast.NodeVisitor):
         parser = self.sub_parser(val)
         target_value = parser.format_inline()
 
-        self.stack.append (f'[Var{opstring}, {target_var}, {target_value}]')
+        self.stack.append(f'[Var{opstring}, {target_var}, {target_value}]')
 
-        
     def format_mem_op(self, method):
         '''
         helper method convert, eg, 
-            
+
             some_mem_block.read_string(offset)
 
         to
@@ -259,11 +255,11 @@ class Analyzer(ast.NodeVisitor):
 
         m_name, _,  m_type = method.partition("_")
 
-        if m_name not in  ('read', 'write', 'resize', 'move', 'delete', 'multi_write', 'create_from_file'):
+        if m_name not in ('read', 'write', 'resize', 'move', 'delete', 'multi_write', 'create_from_file'):
             return None, None
 
         if m_type == 'string':
-            return  f'Mem{m_name.title()}String', None
+            return f'Mem{m_name.title()}String', None
 
         typecode = {
             'float': 0,
@@ -277,13 +273,12 @@ class Analyzer(ast.NodeVisitor):
         }.get(m_type, 0)
         return f'Mem{m_name.title()}', typecode
 
-
     def visit_Call(self, node):
 
         is_attrib = isinstance(node.func, ast.Attribute)
         is_zb = False  # is this a recognized call
         is_mem_call = False
-  
+
         if is_attrib:
             owner_name = node.func.value.id
             func_name = node.func.attr
@@ -294,7 +289,7 @@ class Analyzer(ast.NodeVisitor):
 
         is_zb = owner_name == 'zbrush' or func_name in self.funcs
 
-        # collect the arguments              
+        # collect the arguments
         arg_parser = self.sub_parser(*node.args, func=True)
         arg_string = arg_parser.format_inline()
         if arg_string:
@@ -303,8 +298,8 @@ class Analyzer(ast.NodeVisitor):
         if is_zb:
             # it's a zbrush function.  de-alias in possible and return
             if func_name in self.funcs:
-                func_name = self.funcs.get(node.func.id, func_name) 
-    
+                func_name = self.funcs.get(node.func.id, func_name)
+
             func_string = f'[{func_name}{arg_string}]'
             self.stack.append(func_string)
             return
@@ -321,14 +316,15 @@ class Analyzer(ast.NodeVisitor):
             m_name, typecode = self.format_mem_op(func_name)
             if not m_name:
                 # this will fail on, eg, a random python imported function
-                self.abort(f"Unrecognized operation {owner_name}.{func_name}",  node)
-            
+                self.abort(
+                    f"Unrecognized operation {owner_name}.{func_name}",  node)
+
             # we have to insert the appropriate type code for value types here
             arg_parse = self.sub_parser(*node.args, func=True)
             args = arg_parse.stack
             if typecode:
                 args.insert(1, typecode)
-            tail  = ''
+            tail = ''
             if args:
                 tail = ", ".join(args)
                 tail = ", " + tail
@@ -337,9 +333,6 @@ class Analyzer(ast.NodeVisitor):
                 self.stack.append(f'[{m_name}, {node.func.value.id}{tail}]')
             else:
                 self.stack.append(f'[{m_name}, {node.func.value.id}{tail}]')
-            
-
-  
 
     def visit_Delete(self, node):
         self.stack.append(f'[MemDelete, {node.targets[0].id}]')
@@ -372,8 +365,8 @@ class Analyzer(ast.NodeVisitor):
                     arg_string = arg_parser.format_inline()
                     if arg_string:
                         arg_string = ", " + arg_string
-                    
-                    self.stack.append(f'[MemCreate, {varname}{arg_string}]') 
+
+                    self.stack.append(f'[MemCreate, {varname}{arg_string}]')
                     return
 
                 allowed_funcs = (
@@ -382,11 +375,12 @@ class Analyzer(ast.NodeVisitor):
 
                 is_allowed = False
                 for f in allowed_funcs:
-                    is_allowed = is_allowed or  f in varval.func.attr
+                    is_allowed = is_allowed or f in varval.func.attr
 
                 if (not is_allowed and varval.func.attr not in self.funcs):
-                    self.abort("can only call zbrush functions or memory block functions in an assignment", node)
-                
+                    self.abort(
+                        "can only call zbrush functions or memory block functions in an assignment", node)
+
                 if varval.func.attr in self.funcs:
                     m_name = varval.func.attr
                     typecode = None
@@ -395,18 +389,19 @@ class Analyzer(ast.NodeVisitor):
                     # it's a memory object functon
                     m_name, typecode = self.format_mem_op(varval.func.attr)
                     if not m_name:
-                        self.abort(f"Unrecognized memory operation {varval.func.attr}",  node)
-            
+                        self.abort(
+                            f"Unrecognized memory operation {varval.func.attr}",  node)
+
                 arg_parse = self.sub_parser(*varval.args, func=True)
                 args = arg_parse.stack
                 if typecode:
                     args.insert(1, typecode)
-                tail  = ''
+                tail = ''
                 if args:
                     tail = ", ".join(args)
                     tail = ", " + tail
 
-                if  m_name.lower() == 'array':
+                if m_name.lower() == 'array':
                     # we simulate array assignments with 'zbrush.array( count, fill value)'
                     try:
                         count = arg_parse.stack[0]
@@ -421,29 +416,22 @@ class Analyzer(ast.NodeVisitor):
 
                     self.stack.append(f'[{setter}, {varname}({count}){fill}]')
                 else:
-                    self.stack.append(f'[{setter}, {varname}, [{m_name}{caller}{tail}]]')
+                    self.stack.append(
+                        f'[{setter}, {varname}, [{m_name}{caller}{tail}]]')
                 return
-
+            else:
+                if varval.func.id == "len":
+                    self.stack.append( f"[VarSet, {varname}, [VarSize, #{varval.args[0].id}]]")
+                    return
             self.abort("Can't assign a function call in ZBrush", varval)
 
         elif isinstance(varval, ast.BinOp):
             parser = self.sub_parser(varval)
             varval = parser.format_inline()
-        # elif isinstance (varval, ast.Tuple) or isinstance(varval, ast.List):
-        #     values = self.sub_parser(*varval.elts)
-        #     cnt = values.stack.pop()
-        #     try:
-        #         example = values.stack.pop()
-        #     except: 
-        #         example = ''
-        #     if example:
-        #         example = ", " + example
-            
-        #     self.stack.append(f'[VarDef, {varname}({cnt}){example}]')
-        #     return
+
         else:
             self.abort("invalid assignment", varval)
-        
+
         if not self.context and varval not in self.defined:
             setter = f'[VarDef, {varname}, {varval}]'
             self.defined.append(varname)
@@ -452,16 +440,16 @@ class Analyzer(ast.NodeVisitor):
         self.stack.append(setter)
 
     def visit_Lt(self, node):
-        self.stack.append (" < ")
+        self.stack.append(" < ")
 
     def visit_Gt(self, node):
-        self.stack.append (" > ")
+        self.stack.append(" > ")
 
     def visit_Lte(self, node):
-        self.stack.append (" <=")
+        self.stack.append(" <=")
 
     def visit_Gte(self, node):
-        self.stack.append (" >= ")
+        self.stack.append(" >= ")
 
     def visit_Eq(self, node):
         self.stack.append(" = ")  # note, this is not a double equal!
@@ -469,27 +457,26 @@ class Analyzer(ast.NodeVisitor):
     def visit_NotEq(self, node):
         self.stack.append(" != ")
 
-    
     def visit_If(self, node):
 
         test = self.sub_parser(node.test)
         comp = ''.join(test.stack)
 
         body = self.sub_parser(*node.body)
-        INDENT = ("\n" + self.tab(1))
-        body_str = INDENT.join(body.stack)
-        if body_str:
-            body_str = f"{INDENT}, // then{INDENT}{body_str}" 
+        body_str = body.format() or ""
 
-        orelse  = self.sub_parser(*node.orelse)
-        else_str = INDENT.join(orelse.stack)
-        if else_str:
-            else_str = f"{INDENT}, // else{INDENT}{else_str}"
+
+        orelse = self.sub_parser(*node.orelse)
+        else_str =orelse.format() or ""
 
         self.stack.append('')
-        self.stack.append(f"[If, {comp}, {body_str}{else_str}")
+        self.stack.append(f"[If, ({comp}),")
+        self.stack.append(f"{self.tab()}// then...")
+        self.stack.append( body_str)
+        self.stack.append(f"{self.tab() or '    '}, // else")
+        self.stack.append(else_str)
         self.stack.append(']')
-        
+
     def visit_Expr(self, node):
         if isinstance(node.value, ast.Str):
             self.stack.append(f'// {node.value.s}')
@@ -498,24 +485,49 @@ class Analyzer(ast.NodeVisitor):
             comp = ''.join(sub_parser.stack)
             self.stack.append(comp)
 
+    def visit_While(self, node):
+
+        breakout = ast.If(
+            test = node.test,
+            body = [ast.Expr(value=ast.Continue())],
+            orelse = [ast.Expr(value=ast.Break())]
+        )
+
+        body_block = [i for i in node.body]
+        body_block.append(breakout)
+
+        new_node = ast.For(
+             target= ast.Name("WhileLoop"),
+             iter = ast.Call(func=ast.Name(id="range"), ctx= ast.Load(), args = [ast.Num(n=65534)]),
+             body= body_block
+        )
+        try:
+            self.indent -= 1
+            subp = self.sub_parser(new_node)
+            subp.indent -= 1
+            self.stack.append(subp.format())
+        finally:
+            self.indent += 1
+
     def report(self):
         for item in self.stack:
-            print (item)
-
+            print(item)
 
     def abort(self, message, node):
         """
         fail the transpilation and print an error message
         """
 
-        error_line = self.input_file.splitlines()[node.lineno - 2: node.lineno + 1]
-        raise ValueError ("Compile Error: {} in line {}".format(message, node.lineno), error_line )
+        error_line = self.input_file.splitlines(
+        )[node.lineno - 2: node.lineno + 1]
+        raise ValueError("Compile Error: {} in line {}".format(
+            message, node.lineno), error_line)
 
     def sub_parser(self, *args, **kwargs):
         if kwargs.get('func'):
-            sub_parser = FunctionAnalyzer(context = self)
+            sub_parser = FunctionAnalyzer(context=self)
         else:
-            sub_parser = Analyzer(context= self)
+            sub_parser = Analyzer(context=self)
         sub_parser.indent += 1
         temp = ast.Interactive(list(args))
         sub_parser.visit(temp)
@@ -532,13 +544,11 @@ class FunctionAnalyzer(Analyzer):
         self.stack.append(node.id)
 
 
-
-def compile(filename, out_filename = ''):
-
+def compile(filename, out_filename=''):
 
     with open(filename, "r") as source:
         input_file = source.read()
-    
+
     tree = ast.parse(input_file)
     analyzer = Analyzer(0, input_file=input_file)
     analyzer.visit(tree)
@@ -554,20 +564,22 @@ def compile(filename, out_filename = ''):
 
     return out_filename, analyzer.format()
 
-    
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        prog = "zsc",
-        description = f'Python to ZScript transpiler ({VERSION})'
+        prog="zsc",
+        description=f'Python to ZScript transpiler ({VERSION})'
     )
     parser.add_argument("input", help="path to python source file")
-    parser.add_argument("--output", help="optional output file (otherwise, uses the same name as the input file with .txt extension)")
-    parser.add_argument("--show", help= "if true, print the transpiled file to stdout", action='store_true')
+    parser.add_argument(
+        "--output", help="optional output file (otherwise, uses the same name as the input file with .txt extension)")
+    parser.add_argument(
+        "--show", help="if true, print the transpiled file to stdout", action='store_true')
 
     args = parser.parse_args()
     output, result = compile(args.input, out_filename=args.output or '')
 
     if args.show:
-        print (result)
+        print(result)
     else:
-        print (output)
+        print(output)

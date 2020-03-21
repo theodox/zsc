@@ -7,6 +7,10 @@ replacement of ZScripting with python.  The ZScript language is a very narrow su
 a lot of core python concepts in ZScrtipt would be a major undertaking. This project is aimed at the more modest 
 goal of quickly building up a Zscript with cleaner syntax and more predictable behaviors.
 
+
+> ##STATUS
+> Very much pre-alpha right now.  Contributors wanted!
+
 ## Usage
 
 ```
@@ -18,3 +22,5 @@ The first argument is always the path to a python file.  The output will be writ
 If the optional `--output`  argument is supplied, the file will be written to that path instead.
 
 If the optional `--show` flag is supplied, the transpiled file will be printed to stdout
+
+

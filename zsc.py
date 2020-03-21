@@ -28,10 +28,13 @@ class Analyzer(ast.NodeVisitor):
             'array': 'VarDef'
         }
 
+        self.top_level_defs = []
+
         if self.context:
             self.input_file = self.context.input_file
             self.defined = self.context.defined
             self.funcs = self.context.funcs
+            self.top_level_defs = self.context.top_level_defs
 
     def format(self):
         "newline separated list, with tabs"
@@ -162,6 +165,15 @@ class Analyzer(ast.NodeVisitor):
         # Q: should we use #character?
 
         self.stack.append("[Var, {}]".format(node.id))
+
+    def get_setter(self, name):
+        if self.context or name in self.defined:
+            return 'VarSet'
+        
+        self.defined.append(name)
+        return "VarDef"
+
+        
 
     def visit_BinOp(self, node):
         '''
@@ -337,24 +349,115 @@ class Analyzer(ast.NodeVisitor):
     def visit_Delete(self, node):
         self.stack.append(f'[MemDelete, {node.targets[0].id}]')
 
+
+    def as_literal(self, val):
+        if hasattr(val, 's'):
+            return f'"{val.s}"'
+        if hasattr (val, 'n'):
+            return val.n
+        if isinstance(val, ast.Name):
+            return f'#{val.id}'
+
+        raise ValueError(f"cannot parse {val} as literal")
+
+    def handle_array_assign(self, node):
+        """
+        define or set array variables
+
+            xxx = [1,2,3]
+
+        becomes
+
+            [VarDef, xxx(3), 1]
+            [VarSet, xxx(0), 1]
+            [VarSet, xxx(1), 2]
+            [VarSet, xxx(2), 3]
+            
+        and 
+
+            xxx = [3] * 10
+
+        becomes
+
+            [VarDef, xxx(10), 3]
+
+        note that the original arrays need to be homogeneous examples 
+        of numbers or strings or variable refs.  THe transpiler won't
+        follow variable refs to check types
+        """
+
+        varname = node.targets[0].id
+        setter = self.get_setter(varname)
+        fill = 0
+        emplace = []
+
+        #TODO: type check the incoming arrays
+        # to make sure they are homogeneous
+
+        if isinstance (node.value, ast.List):
+            count = len(node.value.elts)
+            emplace = [i for i in node.value.elts]
+            fill = self.as_literal(emplace[0])
+        elif isinstance(node.value, ast.BinOp):
+            if type(node.value.op) not in (ast.Mult, ast.Add):
+                 self.abort(f"operator {node.value.op} not supported here",  node)
+            op = node.value
+            if not isinstance(op.left, ast.List):
+                self.abort("could not assignment expression", node)
+            if type(op.op) ==  ast.Mult:
+                arr = [i for i in op.left.elts]
+                original_arr = arr[:]
+                arr *= op.right.n
+                fill = self.as_literal(arr[0])
+                count = len(arr)
+                if len(original_arr) > 1:
+                    emplace = [i for i in arr]
+            elif type(op.op) == ast.Add:
+                arr = [i for i in op.left.elts]
+                arr  += [k for k in op.right]
+                fill = self.as_literal(arr[0])
+                count = len(arr) 
+                emplace = [i for i in arr]                              
+        else:
+            self.abort(f"can only parse array literals or array literal muliplies ", node)
+        self.stack.append(f"[{setter}, {varname}({count}), {fill}]")
+        if emplace:
+            for idx, item in enumerate(emplace):
+                self.stack.append(f"[VarSet, {varname}({idx}), {self.as_literal(item)}]")
+
     def visit_Assign(self, node):
 
-        varname = (node.targets[0].id)
-        varval = (node.value)
 
+        varval = (node.value)
+        varname = (node.targets[0].id)
+
+        if isinstance(varval, ast.BinOp) and isinstance(varval.left, ast.List):
+            self.handle_array_assign(node)
+            return
+
+        if isinstance(varval, ast.List):
+            self.handle_array_assign(node)
+            return
+
+        if type(varval) in (ast.Num, ast.Str, ast.Name):
+            varval = self.as_literal(varval)
+        
         if isinstance(varval, ast.Num):
+            # numbers -> number literal
             varval = varval.n
         elif isinstance(varval, ast.Str):
-            varval = varval.s
-        elif isinstance(varval, ast.Name):
-            varval = "[Var, {}]".format(varval.id)
+            #string to string literal 
+            varval = f'"{varval.s}"'
         elif isinstance(varval, ast.Call):
-            if isinstance(varval.func, ast.Attribute):
+            #odo - refactor this out
 
-                if self.context:
+            if isinstance(varval.func, ast.Attribute):
+                var_root = varname.split("(")[0]
+                if self.context or (var_root in self.top_level_defs):
                     setter = 'VarSet'
                 else:
                     setter = 'VarDef'
+                    self.top_level_defs.append(var_root)
 
                 caller = ", " + varval.func.value.id
 
@@ -421,16 +524,14 @@ class Analyzer(ast.NodeVisitor):
                 return
             else:
                 if varval.func.id == "len":
-                    self.stack.append( f"[VarSet, {varname}, [VarSize, #{varval.args[0].id}]]")
+                    #is a pound sign needed here?
+                    self.stack.append( f"[VarSet, {varname}, [VarSize, {varval.args[0].id}]]")
                     return
             self.abort("Can't assign a function call in ZBrush", varval)
 
         elif isinstance(varval, ast.BinOp):
             parser = self.sub_parser(varval)
             varval = parser.format_inline()
-
-        else:
-            self.abort("invalid assignment", varval)
 
         if not self.context and varval not in self.defined:
             setter = f'[VarDef, {varname}, {varval}]'

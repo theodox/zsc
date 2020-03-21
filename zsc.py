@@ -14,6 +14,30 @@ WARN_ON_COMPARISONS = True
 
 VERSION = '0.1.0'
 
+# these could be imported from 'zbrush'
+# or math
+KNOWN_MATH_FUNCS = {
+    "sin": "SIN",
+    "cos": "COS",
+    "tan": "TAN",
+    "asin": "ASIN",
+    "acos": "ACOS",
+    "atan": "ATAN",
+    "atan2": "ATAN2",
+    "log": "LOG",
+    "log10": "LOG10",
+    "sqrt": "SQRT",
+    "abs": "ABS",
+    "random": "RAND", 
+    "randint": "IRAND",
+    "bool": "BOOL",
+    "int": "INT",
+    "frac": "FRAC",
+    # NEG(value)
+    # MIN(value1, value2)
+    # MAX(value1, value2)
+}
+
 
 class Analyzer(ast.NodeVisitor):
     def __init__(self, indent=0, input_file='', context=None):
@@ -25,8 +49,12 @@ class Analyzer(ast.NodeVisitor):
         self.defined = []
         self.zbrush = []
         self.funcs = {
-            'array': 'VarDef'
+            'array': 'VarDef',
+            'min': 'MIN',
+            'max': 'MAX'
         }
+
+        self.funcs.update(**KNOWN_MATH_FUNCS)
 
         self.top_level_defs = []
 
@@ -111,6 +139,7 @@ class Analyzer(ast.NodeVisitor):
         Python def to zbrush [RoutineDef], with indented statements
         and appended in-out arguments
         """
+
         incoming_args = [j.arg for j in node.args.args]
         arg_string = ', '.join(incoming_args)
 
@@ -169,11 +198,9 @@ class Analyzer(ast.NodeVisitor):
     def get_setter(self, name):
         if self.context or name in self.defined:
             return 'VarSet'
-        
+
         self.defined.append(name)
         return "VarDef"
-
-        
 
     def visit_BinOp(self, node):
         '''
@@ -349,11 +376,10 @@ class Analyzer(ast.NodeVisitor):
     def visit_Delete(self, node):
         self.stack.append(f'[MemDelete, {node.targets[0].id}]')
 
-
     def as_literal(self, val):
         if hasattr(val, 's'):
             return f'"{val.s}"'
-        if hasattr (val, 'n'):
+        if hasattr(val, 'n'):
             return val.n
         if isinstance(val, ast.Name):
             return f'#{val.id}'
@@ -372,7 +398,7 @@ class Analyzer(ast.NodeVisitor):
             [VarSet, xxx(0), 1]
             [VarSet, xxx(1), 2]
             [VarSet, xxx(2), 3]
-            
+
         and 
 
             xxx = [3] * 10
@@ -391,20 +417,21 @@ class Analyzer(ast.NodeVisitor):
         fill = 0
         emplace = []
 
-        #TODO: type check the incoming arrays
+        # TODO: type check the incoming arrays
         # to make sure they are homogeneous
 
-        if isinstance (node.value, ast.List):
+        if isinstance(node.value, ast.List):
             count = len(node.value.elts)
             emplace = [i for i in node.value.elts]
             fill = self.as_literal(emplace[0])
         elif isinstance(node.value, ast.BinOp):
             if type(node.value.op) not in (ast.Mult, ast.Add):
-                 self.abort(f"operator {node.value.op} not supported here",  node)
+                self.abort(
+                    f"operator {node.value.op} not supported here",  node)
             op = node.value
             if not isinstance(op.left, ast.List):
                 self.abort("could not assignment expression", node)
-            if type(op.op) ==  ast.Mult:
+            if type(op.op) == ast.Mult:
                 arr = [i for i in op.left.elts]
                 original_arr = arr[:]
                 arr *= op.right.n
@@ -414,22 +441,24 @@ class Analyzer(ast.NodeVisitor):
                     emplace = [i for i in arr]
             elif type(op.op) == ast.Add:
                 arr = [i for i in op.left.elts]
-                arr  += [k for k in op.right]
+                arr += [k for k in op.right]
                 fill = self.as_literal(arr[0])
-                count = len(arr) 
-                emplace = [i for i in arr]                              
+                count = len(arr)
+                emplace = [i for i in arr]
         else:
-            self.abort(f"can only parse array literals or array literal muliplies ", node)
+            self.abort(
+                f"can only parse array literals or array literal muliplies ", node)
         self.stack.append(f"[{setter}, {varname}({count}), {fill}]")
         if emplace:
             for idx, item in enumerate(emplace):
-                self.stack.append(f"[VarSet, {varname}({idx}), {self.as_literal(item)}]")
+                self.stack.append(
+                    f"[VarSet, {varname}({idx}), {self.as_literal(item)}]")
 
     def visit_Assign(self, node):
 
-
         varval = (node.value)
         varname = (node.targets[0].id)
+        setter = self.get_setter(varname)
 
         if isinstance(varval, ast.BinOp) and isinstance(varval.left, ast.List):
             self.handle_array_assign(node)
@@ -441,15 +470,15 @@ class Analyzer(ast.NodeVisitor):
 
         if type(varval) in (ast.Num, ast.Str, ast.Name):
             varval = self.as_literal(varval)
-        
+
         if isinstance(varval, ast.Num):
             # numbers -> number literal
             varval = varval.n
         elif isinstance(varval, ast.Str):
-            #string to string literal 
+            # string to string literal
             varval = f'"{varval.s}"'
         elif isinstance(varval, ast.Call):
-            #odo - refactor this out
+            # odo - refactor this out
 
             if isinstance(varval.func, ast.Attribute):
                 var_root = varname.split("(")[0]
@@ -485,7 +514,7 @@ class Analyzer(ast.NodeVisitor):
                         "can only call zbrush functions or memory block functions in an assignment", node)
 
                 if varval.func.attr in self.funcs:
-                    m_name = varval.func.attr
+                    m_name = self.funcs[varval.func.attr]
                     typecode = None
                     caller = ""
                 else:
@@ -503,29 +532,22 @@ class Analyzer(ast.NodeVisitor):
                 if args:
                     tail = ", ".join(args)
                     tail = ", " + tail
-
-                if m_name.lower() == 'array':
-                    # we simulate array assignments with 'zbrush.array( count, fill value)'
-                    try:
-                        count = arg_parse.stack[0]
-                    except:
-                        count = 1
-                    try:
-                        fill = arg_parse.stack[1]
-                    except:
-                        fill = ''
-                    if fill:
-                        fill = f", {fill}"
-
-                    self.stack.append(f'[{setter}, {varname}({count}){fill}]')
-                else:
-                    self.stack.append(
-                        f'[{setter}, {varname}, [{m_name}{caller}{tail}]]')
+                self.stack.append(
+                    f'[{setter}, {varname}, [{m_name}{caller}{tail}]]')
                 return
             else:
                 if varval.func.id == "len":
-                    #is a pound sign needed here?
-                    self.stack.append( f"[VarSet, {varname}, [VarSize, {varval.args[0].id}]]")
+                    # is a pound sign needed here?
+                    self.stack.append(
+                        f"[VarSet, {varname}, [VarSize, {varval.args[0].id}]]")
+                    return
+                elif varval.func.id in self.funcs:
+                    args  = [str(self.as_literal(v)) for v in varval.args]
+                    if args:
+                        args = ", ".join(args)
+
+                    func_name = self.funcs.get(varval.func.id)
+                    self.stack.append(f'[{setter}, {varname}, [{func_name}, {args}]]')
                     return
             self.abort("Can't assign a function call in ZBrush", varval)
 
@@ -566,14 +588,13 @@ class Analyzer(ast.NodeVisitor):
         body = self.sub_parser(*node.body)
         body_str = body.format() or ""
 
-
         orelse = self.sub_parser(*node.orelse)
-        else_str =orelse.format() or ""
+        else_str = orelse.format() or ""
 
         self.stack.append('')
         self.stack.append(f"[If, ({comp}),")
         self.stack.append(f"{self.tab()}// then...")
-        self.stack.append( body_str)
+        self.stack.append(body_str)
         self.stack.append(f"{self.tab() or '    '}, // else")
         self.stack.append(else_str)
         self.stack.append(']')
@@ -589,18 +610,19 @@ class Analyzer(ast.NodeVisitor):
     def visit_While(self, node):
 
         breakout = ast.If(
-            test = node.test,
-            body = [ast.Expr(value=ast.Continue())],
-            orelse = [ast.Expr(value=ast.Break())]
+            test=node.test,
+            body=[ast.Expr(value=ast.Continue())],
+            orelse=[ast.Expr(value=ast.Break())]
         )
 
         body_block = [i for i in node.body]
         body_block.append(breakout)
 
         new_node = ast.For(
-             target= ast.Name("WhileLoop"),
-             iter = ast.Call(func=ast.Name(id="range"), ctx= ast.Load(), args = [ast.Num(n=65534)]),
-             body= body_block
+            target=ast.Name("WhileLoop"),
+            iter=ast.Call(func=ast.Name(id="range"),
+                          ctx=ast.Load(), args=[ast.Num(n=65534)]),
+            body=body_block
         )
         try:
             self.indent -= 1

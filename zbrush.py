@@ -1,169 +1,177 @@
 
 """
-Stubs for zbrush specific functions
+Conventions:
 
-Note that these exists just to support code completion and so on, they are mapped 1:1 to 
-commands with the same names by the transpiler
+    * Python type hints reinforce expected types
+    * Input with supplied defaults are Zbrush optionals. If the input is typed but specified with
+        'None', it means no input is required
+    * Most inputs are strings or numbers; here they are specified as str, float or int but in
+      zbrush they are all ascii strings or 'numbers' unless specified
+        * there's no unicode nonsense in zbrush, all strings are ascii or utf-8
+    * references to memeory blocks use the MemBlock type hint
+    * references to StrokeData use the StrokeData or MultipleStrokeData type hints
 
-
+Not all functions in the zscript command list are represented directly as functions.  The ones that
+are omitted are represented by other python constructs
 
 """
+from typing import Optional, Any, NewType
+
+StrokeData = NewType()
+MultipleStrokeData = NewType()
+MemBlock = NewType()
+ZBrushCommandList = NewType()
 
 
-def BackColorSet(Red, Green, Blue):
+def BackColorSet(Red: int, Green: int, Blue: int) -> None:
     """
     Sets the pen background color
-
     """
 
 
-def ButtonFind(InterfaceItemPath, ButtonText, InitiallyDisabled=0):
+def ButtonFind(InterfaceItemPath: str, ButtonText: str, InitiallyDisabled: int = 0) -> str:
     """
     Locates a ZBrush interface item
     """
     pass
 
 
-def ButtonPress(InterfaceItemPath, ButtonText, InitiallyDisabled=0):
+def ButtonPress(InterfaceItemPath: str, ButtonText: str, InitiallyDisabled: int = 0) -> None:
     """
     Locates and presses a ZBrush interface item
-
     """
     pass
 
 
-def ButtonSet(InterfaceItemPath, Value, ButtonText, InitiallyDisabled=0):
+def ButtonSet(InterfaceItemPath: str, Value: Any, ButtonName: str, InitiallyDisabled: int = 0) -> None:
     """
     Locates and sets a new value to a ZBrush interface item
-
     """
     pass
 
 
-def ButtonUnPress(InterfaceItemPath, ButtonText, InitiallyDisabled=0):
+def ButtonUnPress(InterfaceItemPath: str, ButtonName: str = "", InitiallyDisabled: int = 0) -> None:
     """
     Locates and unpresses a ZBrush interface item
-
     """
     pass
 
 
-def CanvasClick(*positions):
+def CanvasClick(*positions: int) -> None:
     """
     Emulates a click within the current canvas area
+    Positions are passed 1 to 8  X, Y values, eg
 
+        CanvasClick (128, 128, 256, 512)
+
+    clicks at (x = 128, y= 128) and then (x=256, y=512)
     """
     pass
 
 
-def CanvasGyroHide():
+def CanvasGyroHide() -> None:
     """
     Hides the Transformation Gyro
-
     """
     pass
 
 
-def CanvasGyroShow():
+def CanvasGyroShow() -> None:
     """
     Shows the Transformation Gyro
-
     """
     pass
 
 
-def CanvasPanGetH():
+def CanvasPanGetH() -> int:
     """
     Returns the H pan value of the active document view
-    Output: The current H Pan value.
 
+    Output: The current H Pan value.
     """
     pass
 
 
-def CanvasPanGetV():
+def CanvasPanGetV() -> int:
     """
     Returns the V pan value of the active document view
-    Output: The current V Pan value.
 
+    Output: The current V Pan value.
     """
     pass
 
 
-def CanvasPanSet(HValue, VValue):
+def CanvasPanSet(HValue: int, VValue: int) -> None:
     """
     Pans (Scrolls) the active document view
-
     """
     pass
 
 
-def CanvasStroke(StrokeData, Delayed, Rotation, HScale, VScale, HOffset, VOffset):
+def CanvasStroke(StrokeData: StrokeData, DelayedUpdate: float = 0, Rotation: float = 0, HScale: float = 0, VScale: float = 0, HOffset: int = 0, VOffset: int = 0, HRotateCenter: int = 0, VRotateCenter: int = 0) -> None:
     """
     Emulates a brush stroke within the current canvas area
-
     """
     pass
 
 
-def CanvasStrokes(StrokesData, Delayed, Rotation, HScale, VScale, HOffset, VOffset, HRotateCenter, VRotateCenter):
+def CanvasStrokes(StrokeData: MultipleStrokeData, DelayedUpdate: float = 0, Rotation: float = 0, HScale: float = 0, VScale: float = 0, HOffset: int = 0, VOffset: int = 0, HRotateCenter: int = 0, VRotateCenter: int = 0) -> None:
     """
     Emulates multiple brush strokes within the current canvas area
-
     """
     pass
 
 
-def CanvasZoomGet():
+def CanvasZoomGet() -> float:
     """
     Returns the zoom value of the active document view
+
     Output: The current zoom value.
     """
     pass
 
 
-def CanvasZoomSet(ZoomFactor):
+def CanvasZoomSet(ZoomFactor: float) -> None:
     """
     Sets the zoom factor of the active document view
-
     """
     pass
 
 
-def Caption(Text):
+def Caption(Text: str) -> None:
     """
     Displays a text line using the current Caption settings
-
     """
     pass
 
 
-def CurveAddPoint(CurveIndex, XPos, YPos, ZPos):
+def CurveAddPoint(CurveIndex: int, XPos: int, YPos: int, ZPos: int) -> int:
     """
     Add a new point to the specified curve
-    Output: Returns the point index (zero based) or -1 if failed.
 
+    Output: Returns the point index (zero based) or -1 if failed.
     """
     pass
 
 
-def CurvesCreateMesh(Name, Action, Thickness):
+def CurvesCreateMesh(Name: str, Action: int = 0, Thickness: int = 0) -> int:
     """
     Creates a mesh from the current curves.
 
     Action values:
-        0(default)=Append mesh to the active mesh,  
-        1=Add as a new subtool,  
-        2=Export OBJ file if does not exists,  
-        3=Export Obj file and overwrite if exsits,
 
-    Output: Returns the number of points in the new mesh. 
-        zero=error, 1=file exists
+        0: Append mesh to the active mesh,  
+        1: Add as a new subtool,  
+        2: Export OBJ file if does not exists,  
+        3: Export Obj file and overwrite if exsits,
+
+
+    Output: Returns the number of points in the new mesh. zero=error, 1=file exists
     """
     pass
 
 
-def CurvesDelete():
+def CurvesDelete(CurveList: str) -> None:
     """
     Deletes named curves list.
 
@@ -171,177 +179,193 @@ def CurvesDelete():
     pass
 
 
-def CurvesNewCurve():
+def CurvesNewCurve() -> int:
     """
     Creates a new curve in the current curves list.
-    Output: Returns the curve index (zero based) or -1 if failed.
 
+    Output: Returns the curve index (zero based) or -1 if failed.
     """
     pass
 
 
-def CurvesNew():
+def CurvesNew(Name: str) -> None:
     """
     Creates a new curves list.
-
     """
     pass
 
 
-def CurvesToUI():
+def CurvesToUI() -> int:
     """
     Copy the ZScript curves to UI
-    Output: Returns zero of OK or -1 if failed.
 
+    Output: Returns zero of OK or -1 if failed.
     """
     pass
 
 
-def Delay(DelaySeconds):
+def Delay(DelaySeconds: float) -> None:
     """
     Delays execution of ZScript for specified amount of time
-
     """
     pass
 
 
-def DispMapCreate(ImageWidth, ImageHeight, Smooth=1, SubPoly=0, Border=8, UVTile=0, UseHD=1):
+def DispMapCreate(ImageWidth: int, ImageHeight: int, Smooth: int = 1, SubPoly: int = 0, Border: int = 8, UVTileIndex=0) -> int:
     """
     Creates DisplacementMap
-    Output: Returns zero if executed successfully. Any other value indicates an error
 
+    Output: Returns zero if executed successfully. Any other value indicates an error
     """
     pass
 
 
-def Exit():
+# todo: do we want to support this with a python construct directly?
+# if so, what?
+def Exit() -> None:
     """
     Aborts execution and exits the current ZScript
-
     """
     pass
 
 
-def FileDelete(FileName):
+def FileDelete(FileName: str) -> int:
     """
     Delete specific file.
-    Output: Returns zero if command executed successfully.
 
+    Output: Returns zero if command executed successfully.
     """
     pass
 
 
-def FileExecute(FileName, MethodName, Text="", Number="", InOutMem1=None, InOutMem2=None):
+def FileExecute(FileName:str, MethodName: str, TextInputMem : MemBlock = None, Number: float= 0, InOutMem1: MemBlock = None, InOutMem2: MemBlock: None) -> int:
     """
     Executes the specified plugin file (DLL).
-    Output: Returns the result value which was returned by the executed routine. Returns zero if error
 
+    Output: Returns the result value which was returned by the executed routine. Returns zero if error
     """
     pass
 
 
-def FileExists(FileName):
+def FileExists(FileName: str) -> int:
     """
     Check if a specific file exists.
-    Output: Returns 1 if file exists. Returns zero if does not exists
 
+    Output: Returns 1 if file exists. Returns zero if does not exists
     """
     pass
 
 
-def FileGetInfo(FileName, InfoIndex):
+def FileGetInfo(FileName: str, InfoIndex: int) ->float:
     """
     Retrieve information about a specified file.
-    Output: Returns the requested information or zero if file not found.
+    
+    InfoIndex values:
+    
+        1: file size (in mb)
+        2 -7: Creation date: year, month(1-12), day, hour, minutes, seconds
+        8 -13: Modified date: year, month(1-12), day, hour, minutes, seconds
+        14 -19: Access date: year, month(1-12), day, hour, minutes, seconds.
 
+
+    Output: Returns the requested information or zero if file not found
     """
     pass
 
 
-def FileNameAdvance(FileNameBase, NumDigits, AddCopyTag):
+def FileNameAdvance(FileNameBase: str, NumDigits: int, AddCopyTag: int) -> str:
     """
-    Increments the index value contained within a filename string  
+    Increments the index value contained within a filename string . 
+    if "AddCopyTag" is not zero, add "Copy" to the name.
+
     Output: Updated file Name
-
     """
     pass
 
 
-def FileNameAsk(Extensions, DefaultName, DialogTitle):
+def FileNameAsk(Extensions: str, DefaultName: str = None, DialogTitle: str = None ) -> str:
     """
     Asks user for a file name
     If DefaultName is omitted, it's an Open dialog
-    Output: Result file name or an empty string if user canceled operation.
 
+    Output: Result file name or an empty string if user canceled operation
     """
     pass
 
 
-def FileNameExtract(FileName, Component):
+def FileNameExtract(FileName: str, Component: int) -> str:
     """
-    Extracts filename components. Component of 1 = path, 2= name, 4 = extension
+    Extracts filename components. 
+    
+    Components:
+        1: path
+        2: name
+        4: extension
+
+    values can be OR'ed, s FileNameExtract('xxx', 7) gets the full path with name and extension
+
     Output: The extracted filename component/s.
-
-    @todo: this should be more pythonic
     """
     pass
+    # todo: should we use path.splitext, basename, etc?
 
+    
 
-def FileNameGetLastTyped():
+def FileNameGetLastTyped() -> str:
     """
     Retrieves the latest file name that was typed by the user in a Save/Load action
-    Output: Latest file name that was typed by the user. Returned Variable will be empty if the user has canceled the action.
 
+    Output: Latest file name that was typed by the user. Returned Variable will be empty if the user has canceled the action.
     """
     pass
 
 
-def FileNameGetLastUsed():
+def FileNameGetLastUsed() -> str:
     """
     Retrieves the latest file name that was used (by the user or by ZBrush) in a Save/Load action
-    Output: Latest file name that was used. Returned Variable will be empty if the user has canceled the action.
 
+    Output: Latest file name that was used. Returned Variable will be empty if the user has canceled the action.
     """
     pass
 
 
-def FileNameGetNext():
+def FileNameGetNext() -> str:
     """
     Get the preset file name that will be used in the next Save/Load action,  if it has been preset
-    Output: File name that will be used in the next Save/Load action. Returned Variable will be empty if no next file name is preset.
 
+    Output: File name that will be used in the next Save/Load action. Returned Variable will be empty if no next file name is preset.
     """
     pass
 
 
-def FileNameHasNext():
+def FileNameHasNext() -> int:
     """
     Test if the preset file name that will be used in the next Save/Load action have been set or not
-    Output: Returns 1 if next file name has been set,  0 otherwise.
 
+    Output: Returns 1 if next file name has been set,  0 otherwise.
     """
     pass
 
 
-def FileNameMake(BaseFileName, Index, NumDigits):
+def FileNameMake(BaseFileName: str, Index: int, NumDigits: int) -> str:
     """
     Combines a base filename with an index number
-    Output: Combined file name Variable
 
+    Output: Combined file name Variable
     """
     pass
 
 
-def FileNameResolvePath(LocalFileName):
+def FileNameResolvePath(LocalFileName: str) ->str:
     """
     Resolves local path to full path
-    Output: Full path.
 
+    Output: Full path.
     """
     pass
 
 
-def FileNameSetNext(FileName, TemplatePath=None):
+def FileNameSetNext(FileName: str, TemplatePath: str=None) -> None:
     """
     Pre-sets the file name that will be used in the next Save/Load action
     """
@@ -351,97 +375,101 @@ def FileNameSetNext(FileName, TemplatePath=None):
 def FileTemplateGetNext():
     """
     Get the preset template file name that will be used in the next Save/Load action,  if it has been preset
-    Output: Template file name that will be used in the next Save/Load action. Returned Variable will be empty if no next template file name is preset.
 
+    Output: Template file name that will be used in the next Save/Load action. Returned Variable will be empty if no next template file name is preset.
     """
     pass
 
 
-def FontSetColor(Red, Green, Blue):
+def FontSetColor(Red: int, Green: int, Blue: int) -> None:
     """
     Sets the color of the text-flow font
-
     """
     pass
 
 
-def FontSetOpacity(Opacity):
+def FontSetOpacity(Opacity: float) -> None:
     """
     Sets the opacity of the text-flow font
-
     """
     pass
 
 
-def FontSetSize(Size):
+def FontSetSize(Size: int) -> None:
     """
     Sets the intensity of the text-flow font
-    :1=Small 2=Med 3=Large
+    Values:
+        1: Small
+        2: Med
+        3: Large
     """
     pass
 
 
-def FontSetSizeLarge():
+def FontSetSizeLarge() -> None:
     """
     Sets the size of the text-flow font to large
     """
     pass
 
 
-def FontSetSizeMedium():
+def FontSetSizeMedium() -> None:
     """
     Sets the size of the text-flow font to medium
-
     """
     pass
 
 
-def FontSetSizeSmall():
+def FontSetSizeSmall() -> None:
     """
     Sets the size of the text-flow font to small
-
     """
     pass
 
 
-def FrontColorSet(Description, Red, Green, Blue, Disabled=0):
+def FrontColorSet(Description: str, Red: int, Green: int, Blue: int, Disabled: int = 0) -> None:
     """
     Sets the main interface color to a new value
-
     """
     pass
 
 
-def GetActiveToolPath():
+def GetActiveToolPath() -> str:
     """
     Returns the full path of the active tool
+
     Output: The path of the active tool
     """
     pass
 
 
-def GetPolyMesh3DVolume():
+# this is in the command text file but not the website... todo: is it supported?
+'''def GetPolyMesh3DVolume():
     """
     Get the volume of current PolyMesh3D SubTool
+
     Output: Returns the Volume of current PolyMesh3D SubTool,  or 0 if not a PolyMesh3D. Note: if PolyMesh3D is NOT a valid volume,  then resulting value may be not accurate.
 
     """
     pass
+'''
 
-
-def HotKeyText(InterfacePath):
+def HotKeyText(InterfacePath: str) -> None:
     """
     Displays a hot-key for the specified interface item
     """
     pass
 
+#------------- interface
 
-def IButton(ButtonText, PopupText, Commands, Disabled=0, Width=0, Hotkey='', Icon='', Height=0):
+
+def IButton(ButtonText: str, PopupText: str = None, Commands: ZBrushCommandList : None , Disabled: int = 0, Width: int = 0, Hotkey: str ='', Icon: str ='', Height: int =0) -> None:
     """
     Creates an interactive push button
     """
     pass
 
+# TODO: Pick up type annotations here
 
 def IClick(InterfacePath, *positions):
     """
@@ -483,6 +511,7 @@ def IDialog(Title, TitleMode=0, Icon='', LeftInset=0, RightInset=0, LeftTop=0, R
 
     Icon:  Optional subpalette gray-scale (8-bits) icon (Standrad size of 20x20 pixels)
 
+
     Output: Returns 1 if subpalette added succesfuly. Returns 0 if subpalette could not be added or if it already exsists.
 
     """
@@ -508,6 +537,7 @@ def IEnable(WindowPath, WindowID):
 def IExists(InterfaceItemPath):
     """
     Verifies that a specified interface item exists.
+
     Output: 1 if item exists, 0 otherwise
 
     """
@@ -540,6 +570,7 @@ def IFreeze(CommandS, FadeOutSpeed=0.05):
 def IGet(InterfaceItemPath):
     """
     Returns the current value of a ZBrush or ZScript interface item
+
     Output: The item value
 
     """
@@ -549,6 +580,7 @@ def IGet(InterfaceItemPath):
 def IGetFlags(InterfaceItemPath):
     """
     Returns the status flags of the specified interface item
+
     Output: The flags
 
     """
@@ -558,6 +590,7 @@ def IGetFlags(InterfaceItemPath):
 def IGetHotkey(InterfaceItemPath):
     """
     Returns the hotkey of the specified interface item
+
     Output: The Hotkey
 
     """
@@ -567,6 +600,7 @@ def IGetHotkey(InterfaceItemPath):
 def IGetID(InterfaceItemPath):
     """
     Returns the window ID code of the specified interface item
+
     Output: The Title
 
     """
@@ -576,6 +610,7 @@ def IGetID(InterfaceItemPath):
 def IGetInfo(InterfaceItemPath):
     """
     Returns the info (popup info) of the specified interface item
+
     Output: The info
 
     """
@@ -585,6 +620,7 @@ def IGetInfo(InterfaceItemPath):
 def IGetMax(InterfaceItemPath):
     """
     Returns the maximum possible value of a ZBrush or ZScript interface item
+
     Output: The item maximum value
 
     """
@@ -594,6 +630,7 @@ def IGetMax(InterfaceItemPath):
 def IGetMin(InterfaceItemPath):
     """
     Returns the minimum possible value of a ZBrush or ZScript interface item
+
     Output: The item minimum value
 
     """
@@ -603,6 +640,7 @@ def IGetMin(InterfaceItemPath):
 def IGetSecondary(InterfaceItemPath):
     """
     Returns the the scondary value of a 2D interface item
+
     Output: The item value
     """
     pass
@@ -611,6 +649,7 @@ def IGetSecondary(InterfaceItemPath):
 def IGetStatus(InterfaceItemPath):
     """
     Returns the Enabled/Disabled status of a ZBrush or ZScript interface item
+
     Output: The item status
         0=Disabled
         1=Enabled
@@ -621,6 +660,7 @@ def IGetStatus(InterfaceItemPath):
 def IGetTitle(InterfaceItemPath, ReturnFullPath):
     """
     Returns the title of the specified interface item
+
     Output: The Title of the button
 
     """
@@ -630,6 +670,7 @@ def IGetTitle(InterfaceItemPath, ReturnFullPath):
 def IHeight(InterfaceItemPath):
     """
     Returns the pixel-height of an interface item.
+
     Output: The height of the interface item.
 
     """
@@ -647,6 +688,7 @@ def IHide(InterfaceItemPath, ShowZoomRectangles=0, TargetParentWindow=0):
 def IHPos(InterfaceItemPath, UseGlobalCoords=0):
     """
     Returns the H position of the interface item in Canvas or Global coordinates.
+
     Output: The H position of the interface item.
 
     """
@@ -695,6 +737,7 @@ def IMinimize(InterfaceItemPath, MinimizeSubPalettes):
 def IModGet(InterfaceItemPath):
     """
     Returns the current modifiers binary state of a ZBrush or ZScript interface item
+
     Output: The item value
 
     """
@@ -716,6 +759,7 @@ def Interpolate(Time, Value1, Value2, Value3, Value4, AngleInterpolate=0):
     Time: (0=AtStart 0.5=half 1=AtEnd)	
     Values are (Num,  VarName or ListName)
 
+
     Output: Interpolated value or list
 
     """
@@ -735,6 +779,7 @@ def IReset(ItemToReset=0, ZBrushVersion=1.5):
     Interface Reset
     ItemToReset = 0=All, 1=Interface, 2=Document, 3=Tools, 4=Lights, 5=Materials, 6=Stencil
 
+
     Output: Returns the button that the user clicked. ( 0=NO,  1=YES )
 
     """
@@ -744,6 +789,7 @@ def IReset(ItemToReset=0, ZBrushVersion=1.5):
 def IsDisabled(InterfaceItemPath):
     """
     Returns 1 if the specified ZBrush or ZScript interface item is currently disabled,  returns 0 otherwise
+
     Output: The item 'Disabled' status (1=Disabled 0=Enabled)
 
     """
@@ -753,6 +799,7 @@ def IsDisabled(InterfaceItemPath):
 def IsEnabled(InterfaceItemPath):
     """
     Returns 1 if the specified ZBrush or ZScript interface item is currently enabled,  returns 0 otherwise
+
     Output: The item 'Enabled' status (1=Enabled 0=Disabled)
 
     """
@@ -826,6 +873,7 @@ def ISlider(SliderText, CurValue, Resolution, MinValue, MaxValue, PopupText, Cha
 def IsLocked(InterfaceItemPath):
     """
     Returns 1 if the specified ZBrush or ZScript interface item is currently locked,  returns 0 otherwise
+
     Output: The item 'Locked' status (1=Locked 0=Unlocked)
 
     """
@@ -834,6 +882,7 @@ def IsLocked(InterfaceItemPath):
 def IsPolyMesh3DSolid():
     """
     Tests if current PolyMesh3D is a Solid
+
     Output: Returns 1 if current PolyMesh3D is a valid Solid,  0 otherwise.
 
     """
@@ -855,6 +904,7 @@ def ISubPalette(PaletteName, TitleMode=0,  Icon=None, LeftInset=0, RightInset=0,
     TitleMode: ? (0=Show Title and minimize button(ByDefault) 1=Show Title without minimize button 2=Hide Title ),
     Icon  (8-bits) icon (Standrad size of 20x20 pixels)
 
+
     Output: Returns 1 if subpalette added succesfuly. Returns 0 if subpalette could not be added or if it already exsists.
 
     """
@@ -864,6 +914,7 @@ def ISubPalette(PaletteName, TitleMode=0,  Icon=None, LeftInset=0, RightInset=0,
 def IsUnlocked(InterfaceItemPath):
     """
     Returns 1 if the specified ZBrush or ZScript interface item is currently unlocked,  returns 0 otherwise
+
     Output: The item 'Unlocked' status (1=Unlocked 0=locked)
 
     """
@@ -911,6 +962,7 @@ def IUpdate(RepeatCount=1, Redraw=0):
 def IVPos(InterfaceItemPath, UseGlobalCoords=0):
     """
     Returns the V position of the interface item in Canvas or Global coordinates.
+
     Output: The V position of the interface item.
 
     """
@@ -920,6 +972,7 @@ def IVPos(InterfaceItemPath, UseGlobalCoords=0):
 def IWidth(InterfaceItemPath):
     """
     Returns the pixel-width of an interface item.
+
     Output: The width of the interface item.
 
     """
@@ -930,6 +983,7 @@ def MemCopy(FromBlock, FromOffset, ToBlock, ToOffset, NumBytes=None):
     """
     Copies data from one memory block into another.
     if NumBytes is supplied, limit to that number of b
+
     Output: Returns the mumber of bytes moved. (-1 indicates an error)
 
     """
@@ -940,6 +994,7 @@ def MemCreate(BlockID, BlockSize, InitialFill=None):
     """
     Creates a new memory block.
     If InitialFill is supplied, fil with that value
+
 
     Output: Returns the size of the new memory block or error code...0=Error -1=Memory already exists -2=Can't create memory block.
 
@@ -953,6 +1008,7 @@ def MemCreateFromFile(BlockId, FileName, FileOffset=0, MaxBytes=None):
     if FileOffset is supplied, read fron that byte
     if MaxBytes is supplied, read only that many bytes
 
+
     Output: Returns the size of the new memory block or error code...0=Error -1=Memory already exists -2=Can't create memory block -3=File not found.
 
     """
@@ -962,6 +1018,7 @@ def MemCreateFromFile(BlockId, FileName, FileOffset=0, MaxBytes=None):
 def MemDelete(BlockID):
     """
     Deletes a memory block.
+
     Output: Returns the size of the deleted memory block. Returns 0 if memory block could not be found.
 
     """
@@ -971,6 +1028,7 @@ def MemDelete(BlockID):
 def MemGetSize(BlockID):
     """
     Returns the size of a memory block (Also useful for determining if a memory block already exists
+
     Output: Returns the size of the memory block. Returns 0 if data block could not be found.
 
     """
@@ -980,6 +1038,7 @@ def MemGetSize(BlockID):
 def MemMove(BlockID, FromOffset, ToOffset, NumBytes):
     """
     Move data within an existing memory block.
+
     Output: Returns the mumber of bytes moved.
 
     """
@@ -990,6 +1049,7 @@ def MemMultiWrite(BlockID, Value, Format, Offset, RepeatCount, SubsequentOffset)
     """
     Write data to a memory block.
     Format: (0=omited=float,  1=signed char, 2=unsigned char, 3=signed short, 4=unsigned short, 5=signed long, 6=unsigned long, 7=fixed16 (16.16)
+
     Output: Returns the number of actual bytes written
     """
     pass
@@ -999,6 +1059,7 @@ def MemRead(BlockID, ReadVariable, Format, Offset):
     """
     Reads data from a memory block.
     Data format (0=omited=float,  1=signed char, 2=unsigned char, 3=signed short, 4=unsigned short, 5=signed long, 6=unsigned long, 7=fixed16 (16.16)
+
     Output: Returns the number of actual bytes read
 
     """
@@ -1008,6 +1069,7 @@ def MemRead(BlockID, ReadVariable, Format, Offset):
 def MemReadString(BlockID, StringVar, Offset, BreakAtLineEnd=0, SkipWhiteSpace=0, MaxReadLength=255):
     """
     Reads a string from a memory block.
+
     Output: Returns the number of bytes scanned. (may be larger than the actual bytes read)
 
     """
@@ -1018,6 +1080,7 @@ def MemResize(BlockID, NewSize, FillValue=None):
     """
     Resizes an exsiting memory block.
     if FillValue supplied, use it to fill newly allocated memory
+
     Output: Returns the new size of the memory block. Zero indicates an error.
 
     """
@@ -1028,6 +1091,7 @@ def MemSaveToFile(BlockID, FileName, OverwriteIfExists=0):
     """
     Saves an exisiting memory block to a disk file.
     Overwrite if exists? Set to nonzero value to save the file even if an identically named file already exists on disk. Default=Do not overwrite.
+
     Output: Returns the size of the new memory block or error code...0=Error -1=Memory does not exists -2=File already exits -3=File write error.
 
     """
@@ -1038,6 +1102,7 @@ def MemWrite(BlockID, Value, Format=0, Offset=0):
     """
     Write data to a memory block.
     Format (0=omited=float,  1=signed char, 2=unsigned char, 3=signed short, 4=unsigned short, 5=signed long, 6=unsigned long, 7=fixed16 (16.16)
+
     Output: Returns the number of actual bytes written
 
     """
@@ -1047,6 +1112,7 @@ def MemWrite(BlockID, Value, Format=0, Offset=0):
 def MemWriteString(BlockID, Value, Offset=0, WriteNullTerminator=1):
     """
     Writes a string into a memory block.
+
     Output: Returns the number of bytes written. (including the terminating zero)
     """
     pass
@@ -1066,6 +1132,7 @@ def Mesh3DGet(Property, IndexInput,  OptionalInput, OptionalOutput1=None,  Optio
     Property: 0=PointsCount, 1=FacesCount, 2=XYZ bounds, 3=UVBounds, 4=1stUVTile, 5=NxtUVTile, 6=PolysInUVTile, 7=3DAreaOfUVTile, 8=Full3DMeshArea
     IndexInput:  Vertix/Face/Group/UVTile H index (0 based),
     OutputVariables will be filled based on chosen inputs
+
     Output: Returns zero if command executed successfully,  any other value indicates and error.
 
     """
@@ -1083,6 +1150,7 @@ def MessageOK(Message, Title):
 def MessageOKCancel(Message, Title):
     """
     Displays a user message with CANCEL and OK buttons
+
     Output: Returns the button that the user clicked. (0=CANCEL,  1=OK)
 
     """
@@ -1092,6 +1160,7 @@ def MessageOKCancel(Message, Title):
 def MessageYesNo(Message, Title):
     """
     Displays a user message with YES and NO buttons
+
     Output: Returns the button that the user clicked. (0=NO,  1=YES)
 
     """
@@ -1101,6 +1170,7 @@ def MessageYesNo(Message, Title):
 def MessageYesNoCancel(Message, Title):
     """
     Displays a user message with YES,  NO and CANCEL buttons
+
     Output: Returns the button that the user clicked. (0=NO,  1=YES CANCEL=-1)
 
     """
@@ -1110,6 +1180,7 @@ def MessageYesNoCancel(Message, Title):
 def MouseHPos(UseGlobalCoordinates=0):
     """
     Returns the current H position of the mouse in Canvas or Global coordinates.
+
     Output: The H position of the mouse
 
     """
@@ -1119,6 +1190,7 @@ def MouseHPos(UseGlobalCoordinates=0):
 def MouseLButton():
     """
     Returns the current state of the left mouse button 
+
     Output: Returns 1 if mouse button is pressed,  returns zero if unpressed
 
     """
@@ -1128,6 +1200,7 @@ def MouseLButton():
 def MouseVPos(UseGlobalCoordinates=0):
     """
     Returns the current V position of the mouse in Canvas or Global coordinates.
+
     Output: The V position of the mouse
 
     """
@@ -1155,6 +1228,7 @@ def MVarDef(BlockID,  Count, InitialFill=0):
     pass
 
     defines a new variables memory block.
+
     Output: Returns the variables count of the new memory block or error code...0=Error -1=Memory already exists -2=Can't create memory block.
 
     """
@@ -1164,6 +1238,7 @@ def MVarDef(BlockID,  Count, InitialFill=0):
 def MVarGet(BlockID, VariableIndex):
     """
     Reads a float value from a memory block.
+
     Output: Returns the float value.
 
     """
@@ -1173,6 +1248,7 @@ def MVarGet(BlockID, VariableIndex):
 def MVarSet(BlockID, VariableIndex):
     """
     Writes a float value to a memory block.
+
     Output: Returns the old value of the variable.
 
     """
@@ -1182,6 +1258,7 @@ def MVarSet(BlockID, VariableIndex):
 def NormalMapCreate(ImageWidth, ImageHeight, Smooth=1, SubPoly=0, Border=0, UVTile=None, UseTangentCoords=0):
     """
     Creates NormalMap
+
     Output: Returns zero if executed successfully. Any other value indicates an error
 
     """
@@ -1196,6 +1273,7 @@ def Note(Text, InterfaceItemPath=None, DisplayDuration=0, PopupBackgroundColor=0
 
     FrameLeft ( 0=left (default) ,  .5=center,  1=right )
     FrameTop ( 0=top (default) ,  .5=center,  1=bottom )
+
 
     Output: If the note has UI buttons then the return value of the pressed buttons (1=1st button,  2=2nd button ...),  otherwise the return value will be zero.
     """
@@ -1225,6 +1303,7 @@ def NoteIButton(ButtonText, ButtonIcon=None, InitiallyPressed=0, InitiallyDisabl
 def NoteIGet(NoteButtonIndexOrName):
     """
     Returns the value of am NoteIButton which was shown in the last displayed Note.
+
     Output: The item value
 
     """
@@ -1350,6 +1429,7 @@ def PixolPick(ComponentIndex, HPosition, VPosition):
     Retrieves information about a specified Pixol
     componentIndex: 0=CompositeColor ( 0x000000<->0xffffff  or red*65536+green*256+blue) 1=Z(-32576 to 32576) 2=Red(0 to 255 ) 3=Green(0 to 255 ) 4=Blue(0 to 255 )  5=MaterialIndex(0 to 255 ) 6=XNormal(-1 to 1) 7=YNormal(-1 to 1) 8=ZNormal(-1 to 0) 
 
+
     Output: The value of the specified Pixol
 
     """
@@ -1378,6 +1458,7 @@ def Randomize(SeedValue):
 def RGB(Red, Green, Blue):
     """
     Combines 3 color-components into one RGB value
+
     Output: Combined RGB
 
     """
@@ -1448,6 +1529,7 @@ def SoundPlay(BlockID, PlayMode):
     Plays the sounds loaded into a specified memory block.
     PlayMode: . 0=default=Play once,  dont wait for completion. 1=Play once,  wait for completion. 2=Play loop,  dont wait for completion.):
 
+
     Output: Returns the zero if command executed successfully.
 
     """
@@ -1457,6 +1539,7 @@ def SoundPlay(BlockID, PlayMode):
 def SoundStop(BlockId):
     """
     Stops the currently specified sound. 
+
 
     Output: Returns the zero if command executed successfully.
 
@@ -1469,6 +1552,7 @@ def SoundStop(BlockId):
 def StrAsk(InitialString, Title=""):
     """
     Asks user to input a string.
+
     Output: Returns the text typed by user or an empty string if canceled.
 
     """
@@ -1478,6 +1562,7 @@ def StrAsk(InitialString, Title=""):
 def StrExtract(InputString, StartCharacterIndex, EndCharacterIndex):
     """
     Returns specified portion of the input string
+
     Output: The extracted portion of the input string.
 
     """
@@ -1487,6 +1572,7 @@ def StrExtract(InputString, StartCharacterIndex, EndCharacterIndex):
 def StrFind(FindStr, InStr, StartIndex=0):
     """
     Locate a string within a string.
+
     Output: Returns the starting index of the 1st string within the 2nd string. returns -1 if not found.
 
     """
@@ -1496,6 +1582,7 @@ def StrFind(FindStr, InStr, StartIndex=0):
 def StrFromAsc(CharacterNum):
     """
     Returns the character of the specified Ascii value.
+
     Output: The character of the specified Ascii value.
 
     """
@@ -1505,6 +1592,7 @@ def StrFromAsc(CharacterNum):
 def StrLength(InputStr):
     """
     Returns the number of characters in the input string.
+
     Output: Number of characters in the input string.
 
     """
@@ -1514,6 +1602,7 @@ def StrLength(InputStr):
 def StrLower(InputString):
     """
     Returns the lowercase version of the input string.
+
     Output: The lowercase version of the input string.
 
     """
@@ -1523,6 +1612,7 @@ def StrLower(InputString):
 def StrMerge(Str1, Str2, Str3="", Str4="", Str5="", Str6="", Str7="", Str8="", Str9="", Str10="", Str11="", Str12=""):
     """
     Combines two (or more) strings into one string.
+
     Output: The combined string. Note: result string will not exceed 255 characters in length 
 
     """
@@ -1532,6 +1622,7 @@ def StrMerge(Str1, Str2, Str3="", Str4="", Str5="", Str6="", Str7="", Str8="", S
 def StrToAsc(InputString, Offset=0):
     """
     Returns the Ascii value of a character.
+
     Output: The Ascii value of a character.
 
     """
@@ -1541,6 +1632,7 @@ def StrToAsc(InputString, Offset=0):
 def StrUpper(InputStr):
     """
     Returns the uppercase version of the input string.
+
     Output: The uppercase version of the input string.
 
     """
@@ -1550,6 +1642,7 @@ def StrUpper(InputStr):
 def StrokeGetInfo(StrokeVariable, InfoNumber, PointIndex):
     """
     Retrieves the information from a specified Stroke-type Variable
+
     Output: StrokeInfo result
 
     """
@@ -1561,6 +1654,7 @@ def StrokeGetInfo(StrokeVariable, InfoNumber, PointIndex):
 def StrokeGetLast():
     """
     Retrieves the last drawn brush stroke
+
     Output: StrokeData
 
     """
@@ -1570,6 +1664,7 @@ def StrokeGetLast():
 def StrokeLoad(FileName):
     """
     Loads a brush-stroke text file
+
     Output: StrokeData
 
     """
@@ -1579,6 +1674,7 @@ def StrokeLoad(FileName):
 def StrokesLoad(FileName):
     """
     Loads a brush-strokes text file
+
     Output: StrokesData
 
     """
@@ -1596,6 +1692,7 @@ def SubTitle(Text):
 def SubToolGetActiveIndex():
     """
     Returns the index of the active subtool
+
     Output: Returns the index of the active subtool (zero based).
 
     """
@@ -1605,6 +1702,7 @@ def SubToolGetActiveIndex():
 def SubToolGetCount():
     """
     Returns the number of subtools in the active tool
+
     Output: Returns the number of subtools.  Return 0 if error.
 
     """
@@ -1615,6 +1713,7 @@ def SubToolGetFolderIndex(SubtoolIndex):
     """
     Returns the folder index in which this subtool is contained
     If SubtoolIndex omited then use the currently selected tool.
+
 
     Output: Returns the foldr index or -1 if this subtool is not within a folder.
 
@@ -1627,6 +1726,7 @@ def SubToolGetFolderName(SubtoolIndex):
     """
     Returns the ffolder name of the specified subtool
     If SubtoolIndex omited then use the currently selected tool.
+
     Output: Result folder name or empty if subtool is not in a folder.
 
     """
@@ -1637,6 +1737,7 @@ def SubToolGetID(SubtoolIndex):
     """
     Returns the unique subtool ID
     If SubtoolIndex omited then use the currently selected tool.
+
     Output: Returns the unique subtool ID or zero if error.
 
     """
@@ -1647,6 +1748,7 @@ def SubToolGetStatus(SubtoolIndex):
     """
     Returns the status of a subtool
     If SubtoolIndex omited then use the currently selected tool.
+
     Output: Returns the status (Subtool Eye=0x01,  Folder Eye=0x02, UnionAdd=0x10, UnionSub=0x20, UnionClip=0x40, UnionStart=0x80, ClosedFolder=0x400, OpenedFolder=0x800) .
 
     """
@@ -1656,6 +1758,7 @@ def SubToolGetStatus(SubtoolIndex):
 def SubToolLocate(SubtoolID):
     """
     Locates a subtool by the specified unique ID
+
     Output: Returns the index of the located subtool or -1 if error.
 
     """
@@ -1665,6 +1768,7 @@ def SubToolLocate(SubtoolID):
 def SubToolSelect(SubtoolIndex):
     """
     Selects the specified subtool index
+
     Output: Returns zero if OK,  -1 if error.
 
     """
@@ -1683,6 +1787,7 @@ def SubToolSetStatus(SubtoolIndex, Value):
 def TextCalcWidth(Text):
     """
     Calculates the pixel-width of the specified string
+
     Output: Width of text in pixels
 
     """
@@ -1700,6 +1805,7 @@ def Title(Text):
 def TLDeleteKeyFrame(KeyIndex):
     """
     Delete specified key frame index of the active track
+
     Output: Returns the number of available key frames
 
     """
@@ -1709,6 +1815,7 @@ def TLDeleteKeyFrame(KeyIndex):
 def TLGetActiveTrackIndex():
     """
     Returns the index of the active track
+
     Output: Returns the current active track index -1=None 
 
     """
@@ -1718,6 +1825,7 @@ def TLGetActiveTrackIndex():
 def TLGetKeyFramesCount():
     """
     Returns the total number of key frames in the active track
+
     Output: Returns the number of key frames in the active track 0=None 
 
     """
@@ -1727,6 +1835,7 @@ def TLGetKeyFramesCount():
 def TLGetKeyFrameTime(KeyIndex):
     """
     Get the time of the specified key frame index of the active track
+
     Output: Returns the time of the selected key frame or -1 if error.
 
     """
@@ -1736,6 +1845,7 @@ def TLGetKeyFrameTime(KeyIndex):
 def TLGetTime():
     """
     Returns the current TimeLine knob position in  0.0 to 1.0 range
+
     Output: Returns the current TimeLine knob time 0=start,  1=end
 
     """
@@ -1745,6 +1855,7 @@ def TLGetTime():
 def TLGotoKeyFrameTime(KeyIndex):
     """
     Move TimeLine knob position to specified key frame index of the active track
+
     Output: Returns the time of the selected key frame or -1 if error.
 
     """
@@ -1754,6 +1865,7 @@ def TLGotoKeyFrameTime(KeyIndex):
 def TLGotoTime(Time):
     """
     Sets the current TimeLine knob position in  0.0 to 1.0 range
+
     Output: Returns zero if OK,  -1 if error.
 
     """
@@ -1764,6 +1876,7 @@ def TLNewKeyFrame(Time=None):
     """
     Create a new key frame in the active track
     if Time is omitted, use current time
+
     Output: Returns the new key frame index or -1 if error.
 
     """
@@ -1773,6 +1886,7 @@ def TLNewKeyFrame(Time=None):
 def TLSetActiveTrackIndex(TrackIndex):
     """
     Sets the active track index
+
     Output: Returns zero if OK,  -1 if error.
 
     """
@@ -1783,6 +1897,7 @@ def TLSetKeyFrameTime(KeyIndex, Time):
     """
     Set the time of the specified key frame index of the active track
     Time is 0-1
+
     Output: Returns the new key frame index or -1 if error.
 
     """
@@ -1792,6 +1907,7 @@ def TLSetKeyFrameTime(KeyIndex, Time):
 def ToolGetActiveIndex():
     """
     Returns the index of the active tool
+
     Output: Returns the index of the active tool (zero based).
 
     """
@@ -1801,6 +1917,7 @@ def ToolGetActiveIndex():
 def ToolGetCount():
     """
     Returns the number of available tools
+
     Output:  Returns the number of available tools.
 
     """
@@ -1811,6 +1928,7 @@ def ToolGetPath(ToolIndex=None):
     """
     Returns the file path or name of the specified tool
     If ToolIndex is omited then use the currently selected tool.
+
     Output: Result path (without the .ztl). Empty if error.
 
     """
@@ -1822,6 +1940,7 @@ def ToolGetSubToolID(ToolIndex=None, SubtoolIndex=None):
     Returns the unique subtool ID
     If ToolIndex is omited then use the currently selected tool.
     If SubtoolIndex omited then use the selected subtool.):
+
     Output: Returns the unique subtool ID or zero if error.
 
     """
@@ -1832,6 +1951,7 @@ def ToolGetSubToolsCount(ToolIndex):
     """
     Returns the number of subtools in the specified tool index
     If ToolIndex is omited then use the currently selected tool.
+
     Output: Returns the number of subtools.  Return 0 if error.
 
     """
@@ -1841,6 +1961,7 @@ def ToolGetSubToolsCount(ToolIndex):
 def ToolLocateSubTool(SubToolID, SubtoolIndex=None):
     """
     Locates a subtool by the specified unique ID
+
     Output: Returns the index of the located tool and subtool or -1 if error.
     """
     pass
@@ -1849,6 +1970,7 @@ def ToolLocateSubTool(SubToolID, SubtoolIndex=None):
 def ToolSelect(SubToolIndex):
     """
     Selects the specified tool index
+
     Output: Returns zero if OK,  -1 if error.
 
     """
@@ -1860,6 +1982,7 @@ def ToolSetPath(SubToolIndex=None, NewPath=""):
     Sets the file path or name of the specified tool
     If Tool Index  omited then use the currently selected tool.
     The new tool path ignores extensions
+
     Output: Returns zero if OK,  -1 if error.
 
     """
@@ -1893,6 +2016,7 @@ def TransposeGet(StarXPos, StartYPos, StartZPos, EndXPos, EndYPos, EndZPos, Line
 def TransposeIsShown():
     """
     Returns status of transpose line
+
     Output: Returns 1 if shown,  zero if not.
 
     """
@@ -1911,6 +2035,7 @@ def TransposeSet(StarXPos, StartYPos, StartZPos, EndXPos, EndYPos, EndZPos, Line
 def Val(Variable):
     """
     Evaluates the input and returns a numerical value
+
     Output: Value of the named variable
 
     """
@@ -1972,6 +2097,7 @@ def VarListCopy(DestinationList, DesitnationStart, SourceList, SourceStart, NumT
 def VarLoad(VariableName, FileName, VerifyOnly=0):
     """
     Loads variable/s from a file
+
     Output: Number of loaded or verfied values
 
     """
@@ -1981,6 +2107,7 @@ def VarLoad(VariableName, FileName, VerifyOnly=0):
 def VarSave(VariableName, FileName):
     """
     Saves variable value/s to file
+
     Output: Number of saved values
 
     """
@@ -2007,6 +2134,7 @@ def VarSave(VariableName, FileName):
 def VarSize(VariableName):
     """
     Returns the number of items in a variable or in a list
+
     Output: The number of items in a list or 1 if it is a simple variable
 
     """
@@ -2026,7 +2154,8 @@ def VarSize(VariableName):
 # def Var(VariableName):
 #     """
 #     Gets the value of a named variable
-#     Output: Value of the named variable
+#
+     Output: Value of the named variable
 
 #     """
 #     pass
@@ -2052,6 +2181,7 @@ def ZBrushInfo(InfoType):
         14: seconds
         15: Day Of The week
         16: cpu
+
     Output: Result value
 
     """
@@ -2060,6 +2190,7 @@ def ZBrushInfo(InfoType):
 def ZBrushPriorityGet():
     """
     Returns the task-priority of ZBrush.
+
     Output: The current task-priority (-2 to 2)
     """
     pass
@@ -2081,6 +2212,7 @@ def ZBrushPrioritySet(Priority):
 def ZSphereAdd(xPos, yPos, zPos, Radius, ParentIndex,  color=0x000000, Mask=0, TimeStamp=0, Flags=0):
     """
     Adds new ZSphere to the currently active ZSpheres tool
+
     Output: Returns the the index of the new ZSphere or -1 if command failed.
 
     """
@@ -2090,6 +2222,7 @@ def ZSphereAdd(xPos, yPos, zPos, Radius, ParentIndex,  color=0x000000, Mask=0, T
 def ZSphereDel(ZSphereIndex):
     """
     Deletes a ZSphere from the currently active ZSpheres tool
+
     Output: Returns zero if command executed successfully.
     """
     pass
@@ -2098,6 +2231,7 @@ def ZSphereDel(ZSphereIndex):
 def ZSphereEdit(ZSphereCommand, StoreUndo):
     """
     Prepares the currently active ZSpheres tool for ZScript editing session.
+
     Output: Returns the zero if command executed successfully.
 
     if storeUndo != 0, add to the undo queue
@@ -2134,6 +2268,7 @@ def ZSphereGet(Property, ZSphereIndex=None, SecondIndex=None):
         20: XYZ Res
         21: UserValue
 
+
     Output: Returns the value of the specified property
 
     """
@@ -2168,6 +2303,7 @@ def ZSphereSet(Property, ZSphereIndex=None, NewValue):
         19: Z Res
         20: XYZ Res
         21: UserValue
+
 
     Output: Returns zero if command executed successfully.
     """

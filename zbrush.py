@@ -5,6 +5,8 @@ Stubs for zbrush specific functions
 Note that these exists just to support code completion and so on, they are mapped 1:1 to 
 commands with the same names by the transpiler
 
+
+
 """
 
 
@@ -1454,11 +1456,14 @@ def SoundPlay(BlockID, PlayMode):
 
 def SoundStop(BlockId):
     """
-    Stops the currently specified sound.
+    Stops the currently specified sound. 
+
     Output: Returns the zero if command executed successfully.
 
     """
     pass
+
+#----- strings
 
 
 def StrAsk(InitialString, Title=""):
@@ -1470,7 +1475,7 @@ def StrAsk(InitialString, Title=""):
     pass
 
 
-def StrExtract(Input string, Start character index(0=left), End character index(0=left)):
+def StrExtract(InputString, StartCharacterIndex, EndCharacterIndex):
     """
     Returns specified portion of the input string
     Output: The extracted portion of the input string.
@@ -1479,7 +1484,7 @@ def StrExtract(Input string, Start character index(0=left), End character index(
     pass
 
 
-def StrFind(find this string, in this string, Optional start search index(default=0)):
+def StrFind(FindStr, InStr, StartIndex=0):
     """
     Locate a string within a string.
     Output: Returns the starting index of the 1st string within the 2nd string. returns -1 if not found.
@@ -1488,7 +1493,7 @@ def StrFind(find this string, in this string, Optional start search index(defaul
     pass
 
 
-def StrFromAsc(Input Ascii value):
+def StrFromAsc(CharacterNum):
     """
     Returns the character of the specified Ascii value.
     Output: The character of the specified Ascii value.
@@ -1497,7 +1502,7 @@ def StrFromAsc(Input Ascii value):
     pass
 
 
-def StrLength(String to evaluate):
+def StrLength(InputStr):
     """
     Returns the number of characters in the input string.
     Output: Number of characters in the input string.
@@ -1506,7 +1511,7 @@ def StrLength(String to evaluate):
     pass
 
 
-def StrLower(Input string):
+def StrLower(InputString):
     """
     Returns the lowercase version of the input string.
     Output: The lowercase version of the input string.
@@ -1515,7 +1520,7 @@ def StrLower(Input string):
     pass
 
 
-def StrMerge(Str 1, Str 2, Optional Str 3, Opt Str 4, Opt Str 5, Opt Str 6, Opt Str 7, Opt Str 8, Opt Str 9, Opt Str 10, Opt Str 11, Opt Str 12):
+def StrMerge(Str1, Str2, Str3="", Str4="", Str5="", Str6="", Str7="", Str8="", Str9="", Str10="", Str11="", Str12=""):
     """
     Combines two (or more) strings into one string.
     Output: The combined string. Note: result string will not exceed 255 characters in length 
@@ -1524,13 +1529,33 @@ def StrMerge(Str 1, Str 2, Optional Str 3, Opt Str 4, Opt Str 5, Opt Str 6, Opt 
     pass
 
 
-def StrokeGetInfo(Stroke-type Variable, Info number, Point index(0 based)):
+def StrToAsc(InputString, Offset=0):
+    """
+    Returns the Ascii value of a character.
+    Output: The Ascii value of a character.
+
+    """
+    pass
+
+
+def StrUpper(InputStr):
+    """
+    Returns the uppercase version of the input string.
+    Output: The uppercase version of the input string.
+
+    """
+    pass
+
+
+def StrokeGetInfo(StrokeVariable, InfoNumber, PointIndex):
     """
     Retrieves the information from a specified Stroke-type Variable
     Output: StrokeInfo result
 
     """
     pass
+
+# stroke -------------
 
 
 def StrokeGetLast():
@@ -1555,24 +1580,6 @@ def StrokesLoad(FileName):
     """
     Loads a brush-strokes text file
     Output: StrokesData
-
-    """
-    pass
-
-
-def StrToAsc(Input string, Optional character offset(default=0)):
-    """
-    Returns the Ascii value of a character.
-    Output: The Ascii value of a character.
-
-    """
-    pass
-
-
-def StrUpper(Input string):
-    """
-    Returns the uppercase version of the input string.
-    Output: The uppercase version of the input string.
 
     """
     pass
@@ -1781,6 +1788,7 @@ def TLSetKeyFrameTime(KeyIndex, Time):
     """
     pass
 
+
 def ToolGetActiveIndex():
     """
     Returns the index of the active tool
@@ -1788,6 +1796,7 @@ def ToolGetActiveIndex():
 
     """
     pass
+
 
 def ToolGetCount():
     """
@@ -1846,7 +1855,7 @@ def ToolSelect(SubToolIndex):
     pass
 
 
-def ToolSetPath(SubToolIndex = None, NewPath = ""):
+def ToolSetPath(SubToolIndex=None, NewPath=""):
     """
     Sets the file path or name of the specified tool
     If Tool Index  omited then use the currently selected tool.
@@ -1873,12 +1882,13 @@ def TransformSet(xPos, yPos, zPos, xScale, yScale, zScale, xRotate, yRotate, zRo
     pass
 
 
-def TransposeGet(StarXPos, StartYPos, StartZPos, EndXPos, EndYPos, EndZPos,LineLength, RedAxisX, RedAxisY, RedAxisZ, GreenAxisX, GreenAxisY, GreenAxisZ, BlueAxisX, BlueAxisY, BlueAxisZ):
+def TransposeGet(StarXPos, StartYPos, StartZPos, EndXPos, EndYPos, EndZPos, LineLength, RedAxisX, RedAxisY, RedAxisZ, GreenAxisX, GreenAxisY, GreenAxisZ, BlueAxisX, BlueAxisY, BlueAxisZ):
     """
     Gets current Transpose Action Line values.
 
     """
     pass
+
 
 def TransposeIsShown():
     """
@@ -1889,7 +1899,7 @@ def TransposeIsShown():
     pass
 
 
-def TransposeSet(StarXPos, StartYPos, StartZPos, EndXPos, EndYPos, EndZPos,LineLength, RedAxisX, RedAxisY, RedAxisZ, GreenAxisX, GreenAxisY, GreenAxisZ, BlueAxisX, BlueAxisY, BlueAxisZ):
+def TransposeSet(StarXPos, StartYPos, StartZPos, EndXPos, EndYPos, EndZPos, LineLength, RedAxisX, RedAxisY, RedAxisZ, GreenAxisX, GreenAxisY, GreenAxisZ, BlueAxisX, BlueAxisY, BlueAxisZ):
     """
     Sets current Transpose Action Line values.
 
@@ -1950,7 +1960,8 @@ def Val(Variable):
 #     pass
 
 
-def VarListCopy(Destination list, Destination initial index, Source list, Source initial index, Number of items to copy. (if omitted or it is 0,  then all items will be copied)):
+# todo: handle this via slicing
+def VarListCopy(DestinationList, DesitnationStart, SourceList, SourceStart, NumToCopy=0):
     """
     Copies items from a source list to a destination list
 
@@ -1966,19 +1977,24 @@ def VarLoad(VariableName, FileName, VerifyOnly=0):
     """
     pass
 
+
+def VarSave(VariableName, FileName):
+    """
+    Saves variable value/s to file
+    Output: Number of saved values
+
+    """
+    pass
+
+# handled via  * 0r *=
 # def VarMul(Variable name, Value to Multiply):
 #         """
 #     Multiplies an existing variable by a value
 
 #     """
-            VarSave, Variable name, FileName
-            """
-    Saves variable value/s to file
-    Output: Number of saved values
 
-    """
-            pass
 
+# handled implicitly
 # def VarSet(Variable name, New Value):
 #     """
 #     Sets the value of a named variable
@@ -1986,99 +2002,195 @@ def VarLoad(VariableName, FileName, VerifyOnly=0):
 #     """
 #             pass
 
-def VarSize(Variable name):
-            """
+
+# handled via len() for arrays (TODO: has to distinguish between strings and arrays!)
+def VarSize(VariableName):
+    """
     Returns the number of items in a variable or in a list
     Output: The number of items in a list or 1 if it is a simple variable
 
     """
-            pass
+    pass
 
-            def VarSub(Variable name, Value To Subtract):
-            """
-    Subtracts a value from an existing variable
 
+# handled via - or -=
+# def VarSub(Variable name, Value To Subtract):
+#             """
+#     Subtracts a value from an existing variable
+
+#     """
+#     pass
+
+
+# handled.implicitly
+# def Var(VariableName):
+#     """
+#     Gets the value of a named variable
+#     Output: Value of the named variable
+
+#     """
+#     pass
+
+def ZBrushInfo(InfoType):
     """
-            pass
+    Integer type code:
 
-            def Var(Variable name):
-            """
-    Gets the value of a named variable
-    Output: Value of the named variable
-
-    """
-            ZBrushInfo, The info type. 0=version number,  1=Demo/Beta/Full,  2=Runtime seconds,  3=Mem use, 4=VMem Use, 5=Free Mem, 6=operating system(0=PC, 1=Mac, 2=MacOSX), 7=Unique session ID, 8=Total RAM, 9=year, 10=mounth, 11=day, 12=hour, 13=minutes, 14=seconds, 15=Day Of The week, 16=cpu
-            """
-    Returns ZBrush info.
+        0: version number
+        1: Demo/Beta/Full
+        2: Runtime seconds
+        3: Mem use
+        4: VMem Use
+        5: Free Mem
+        6: operating system(0: PC, 1: Mac, 2: MacOSX)
+        7: Unique session ID
+        8: Total RAM
+        9: year
+        10: mounth
+        11: day
+        12: hour
+        13: minutes
+        14: seconds
+        15: Day Of The week
+        16: cpu
     Output: Result value
 
     """
-            ZBrushPriorityGet
-            """
+
+
+def ZBrushPriorityGet():
+    """
     Returns the task-priority of ZBrush.
-    Output: The current task-priority
-
+    Output: The current task-priority (-2 to 2)
     """
-            pass
+    pass
 
-            def ZBrushPrioritySet(The priority. -2=Low,  -1=BelowNormal,  0=normal,  1=Above Normal,  2=High):
-            """
+
+def ZBrushPrioritySet(Priority):
+    """
     Sets the task-priority of ZBrush.
+        -2: Low
+        -1: BelowNormal
+        0: normal
+        1: Above Normal
+        2: High
 
     """
-            pass
+    pass
 
-            def ZSphereAdd(xPos, yPos, zPos, Radius, Parent index(0 based), Optional Color   0x000000 < ->0xffffff  (RED*65536)+(GREEN*256)+BLUE, Optional Mask(0=unmasked to 255=fully masked), Optional TimeStamp, Optional Flags(0=default,  1=invisible link to parent)):
-            """
+
+def ZSphereAdd(xPos, yPos, zPos, Radius, ParentIndex,  color=0x000000, Mask=0, TimeStamp=0, Flags=0):
+    """
     Adds new ZSphere to the currently active ZSpheres tool
     Output: Returns the the index of the new ZSphere or -1 if command failed.
 
     """
-            pass
+    pass
 
-            def ZSphereDel(ZSphere index.  (Sphere 0 can't be deleted)):
-            """
+
+def ZSphereDel(ZSphereIndex):
+    """
     Deletes a ZSphere from the currently active ZSpheres tool
     Output: Returns zero if command executed successfully.
-
     """
-            ZSphereEdit, ZSpheres editing commands, Store undo? (0=Skip Undo,  1=Store undo)
-            """
+    pass
+
+
+def ZSphereEdit(ZSphereCommand, StoreUndo):
+    """
     Prepares the currently active ZSpheres tool for ZScript editing session.
     Output: Returns the zero if command executed successfully.
 
+    if storeUndo != 0, add to the undo queue
     """
-            pass
+    pass
 
-            def ZSphereGet(Property: 0=ZSpheres count, 1=xPos, 2=yPos, 3=zPos, 4=radius, 5=color, 6=mask, 7=ParentIndex(-1=none), 8=LastClickedIndex(-1=none), 9=TimeStamp; 10=ChildsCount, 11=ChildIndex(2nd index), 12=TimeStampCount, 13=TimeStampIndex, 14=flags, 15=Twist Angle, 16=Membrane, 17=X Re, Optional ZSphere index(0 based), Optional 2nd index(0 based)):
-            """
+
+def ZSphereGet(Property, ZSphereIndex=None, SecondIndex=None):
+    """
     Gets information about the currently active ZSpheres tool. (Must be placed within ZSphereEdit command)
+
+    Propery values:
+
+        0: ZSpheres count
+        1: xPos
+        2: yPos
+        3: zPos
+        4: radius
+        5: color
+        6: mask
+        7: ParentIndex(-1: none)
+        8: LastClickedIndex(-1: none)
+        9: TimeStamp; 10: ChildsCount
+        11: ChildIndex(2nd index)
+        12: TimeStampCount
+        13: TimeStampIndex
+        14: flags
+        15: Twist Angle
+        16: Membrane
+        16: Membrane
+        17: X Res
+        18: Y Res
+        19: Z Res
+        20: XYZ Res
+        21: UserValue
+
     Output: Returns the value of the specified property
 
     """
-            pass
+    pass
 
-            def ZSphereSet(Property: 0=unused,  1=xPos, 2=yPos, 3=zPos, 4=radius, 5=color, 6=mask, 7=ParentIndex, 8=unused, 9=TimeStamp, 10=unused, 11=unused, 12=unused, 13=unused, 14=flags, 15=Twist Angle, 16=Membrane, 17=X Res, 18=Y Res, 19=Z Res, 20=XYZ Res, 21=UserValue, ZSphere index(0 based), New property value]):
-    Modifies a property of the currently active ZSpheres tool. (Must be placed within ZSphereEdit command)
+
+def ZSphereSet(Property, ZSphereIndex=None, NewValue):
+    """
+    Sets property on the current ZSphere tool or tool at supplied index
+
+    Propery values:
+
+        0: ZSpheres count
+        1: xPos
+        2: yPos
+        3: zPos
+        4: radius
+        5: color
+        6: mask
+        7: ParentIndex(-1: none)
+        8: LastClickedIndex(-1: none)
+        9: TimeStamp; 10: ChildsCount
+        11: ChildIndex(2nd index)
+        12: TimeStampCount
+        13: TimeStampIndex
+        14: flags
+        15: Twist Angle
+        16: Membrane
+        16: Membrane
+        17: X Res
+        18: Y Res
+        19: Z Res
+        20: XYZ Res
+        21: UserValue
+
     Output: Returns zero if command executed successfully.
+    """
+    pass
 
-    Math Functions:
-    SIN(angle)
-    COS(angle)
-    TAN(angle)
-    ASIN(value)
-    ACOS(value)
-    ATAN(value)
-    ATAN2(value, value)
-    LOG(value)
-    LOG10(value)
-    SQRT(value)
-    ABS(value)
-    RAND(value)
-    IRAND(value)
-    BOOL(value)
-    INT(value)
-    FRAC(value)
-    NEG(value)
-    MIN(value1, value2)
-    MAX(value1, value2)
+# there are handled implicitly ...
+# Math Functions:
+# SIN(angle)
+# COS(angle)
+# TAN(angle)
+# ASIN(value)
+# ACOS(value)
+# ATAN(value)
+# ATAN2(value, value)
+# LOG(value)
+# LOG10(value)
+# SQRT(value)
+# ABS(value)
+# RAND(value)
+# IRAND(value)
+# BOOL(value)
+# INT(value)
+# FRAC(value)
+# NEG(value)
+# MIN(value1, value2)
+# MAX(value1, value2)

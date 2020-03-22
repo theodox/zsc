@@ -15,7 +15,9 @@ WARN_ON_COMPARISONS = True
 VERSION = '0.1.0'
 
 # these could be imported from 'zbrush'
-# or math
+# or math.  this is not a 1:1 match  with
+# zbrush's list, some of those are handled
+# by python constucts, such as "-x -> [NEG, #x]"
 KNOWN_MATH_FUNCS = {
     "sin": "SIN",
     "cos": "COS",
@@ -33,9 +35,6 @@ KNOWN_MATH_FUNCS = {
     "bool": "BOOL",
     "int": "INT",
     "frac": "FRAC",
-    # NEG(value)
-    # MIN(value1, value2)
-    # MAX(value1, value2)
 }
 
 
@@ -239,6 +238,13 @@ class Analyzer(ast.NodeVisitor):
 
         self.stack.append(
             f'({left.format_inline(sep = " ")} {op} {right.format_inline(sep = " ")})')
+
+    def visit_UnaryOp(self, node):
+        if isinstance(node.op, ast.USub):
+            target = self.as_literal(node.operand)
+            self.stack.append(f"[NEG,{target} ]")
+            return
+        raise RuntimeError(f"Unsuporter oprations {node.op}")
 
     def visit_AugAssign(self, node):
         '''
@@ -470,13 +476,13 @@ class Analyzer(ast.NodeVisitor):
 
         if type(varval) in (ast.Num, ast.Str, ast.Name):
             varval = self.as_literal(varval)
+        elif isinstance(varval, ast.UnaryOp):
 
-        if isinstance(varval, ast.Num):
-            # numbers -> number literal
-            varval = varval.n
-        elif isinstance(varval, ast.Str):
-            # string to string literal
-            varval = f'"{varval.s}"'
+            if isinstance(varval.op, ast.USub):
+                target = self.as_literal(varval.operand)
+                self.stack.append (f"[{setter}, {varname}, [NEG, {target}]]")
+                return
+
         elif isinstance(varval, ast.Call):
             # odo - refactor this out
 

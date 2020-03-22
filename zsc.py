@@ -14,28 +14,7 @@ WARN_ON_COMPARISONS = True
 
 VERSION = '0.1.0'
 
-# these could be imported from 'zbrush'
-# or math.  this is not a 1:1 match  with
-# zbrush's list, some of those are handled
-# by python constucts, such as "-x -> [NEG, #x]"
-KNOWN_MATH_FUNCS = {
-    "sin": "SIN",
-    "cos": "COS",
-    "tan": "TAN",
-    "asin": "ASIN",
-    "acos": "ACOS",
-    "atan": "ATAN",
-    "atan2": "ATAN2",
-    "log": "LOG",
-    "log10": "LOG10",
-    "sqrt": "SQRT",
-    "abs": "ABS",
-    "random": "RAND", 
-    "randint": "IRAND",
-    "bool": "BOOL",
-    "int": "INT",
-    "frac": "FRAC",
-}
+
 
 
 class Analyzer(ast.NodeVisitor):
@@ -46,14 +25,35 @@ class Analyzer(ast.NodeVisitor):
         self.context = context
         self.stack = []
         self.defined = []
-        self.zbrush = []
+
+        # these are functions which we recognize in input calls and convert to their
+        # zbrush equivalents.  Not all have exact equivalents -- some zbrush
+        # functions are represents by python syntac instead
+        
+        # todo: As written we only check these against the name of a call, ie,
+        # it could be 'zrush.sin()` or `math.sin()` in the python side.  We should
+        # probably regularize that for consistency & readability
+
         self.funcs = {
-            'array': 'VarDef',
+            "sin": "SIN",
+            "cos": "COS",
+            "tan": "TAN",
+            "asin": "ASIN",
+            "acos": "ACOS",
+            "atan": "ATAN",
+            "atan2": "ATAN2",
+            "log": "LOG",
+            "log10": "LOG10",
+            "sqrt": "SQRT",
+            "abs": "ABS",
+            "random": "RAND", 
+            "randint": "IRAND",
+            "bool": "BOOL",
+            "int": "INT",
+            "frac": "FRAC",
             'min': 'MIN',
             'max': 'MAX'
         }
-
-        self.funcs.update(**KNOWN_MATH_FUNCS)
 
         self.top_level_defs = []
 
@@ -688,7 +688,7 @@ def compile(filename, out_filename=''):
         tp = (f'transpiled with zsc {VERSION}')
         orig = f'from: {filename}'
 
-        output.write(f"/*\n{tp}\n{orig}\n*/\n\n")
+        output.write(f"// {tp}\n// {orig}\n")
         output.write(analyzer.format())
 
     return out_filename, analyzer.format()

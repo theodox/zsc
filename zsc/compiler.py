@@ -15,12 +15,75 @@ WARN_ON_COMPARISONS = True
 VERSION = '0.1.0'
 
 
+class Prepass(ast.NodeVisitor):
+
+    def __init__(self):
+        self.functions = {}
+        self.zbrush_mod = None
+        self.zbrush_aliases = {
+            "sin": "SIN",
+            "cos": "COS",
+            "tan": "TAN",
+            "asin": "ASIN",
+            "acos": "ACOS",
+            "atan": "ATAN",
+            "atan2": "ATAN2",
+            "log": "LOG",
+            "log10": "LOG10",
+            "sqrt": "SQRT",
+            "abs": "ABS",
+            "random": "RAND", 
+            "randint": "IRAND",
+            "bool": "BOOL",
+            "int": "INT",
+            "frac": "FRAC",
+            'min': 'MIN',
+            'max': 'MAX'
+        }
+        self.zbrush_function = {}
+
+    def get_call_name(self, node):
+        try:
+            prefix = ''
+            name = node.func.id
+        except:
+            prefix = node.func.value.id
+            name = node.func.attr
+
+        alias = self.zbrush_aliases.get(name,'')
+        if not alias and prefix == 'zbrush':
+            alias = name
+        return prefix, name, alias
+
+
+    def visit_Import(self,  node):
+
+        for name in node.names:
+            if 'zbrush' in name.name:
+                zname = name.name.split(".")[-1]
+                self.zbrush_aliases[name.asname or name.name] = zname
+
+    def visit_ImportFrom(self, node):
+
+        if node.module == 'zbrush':
+            for name in node.names:
+                self.zbrush_aliases[name.asname or name.name] = name.name
+
+    def visit_Call(self, node):
+        self.functions[self.get_call_name(node)] = node
+
+    def is_defined(self, node):
+        return self.get_call_name(node) in self.functions
+
+
+
+
+
 
 
 class Analyzer(ast.NodeVisitor):
     def __init__(self, indent=0, input_file='', context=None):
         self.input_file = input_file
-        self.contents = io.StringIO()
         self.indent = indent
         self.context = context
         self.stack = []
@@ -638,6 +701,29 @@ class Analyzer(ast.NodeVisitor):
         finally:
             self.indent += 1
 
+    # def visit_With(self, node):
+    #     if len(node.items) != 1:
+    #         self.abort("Cannot parts multiple context manager aliases", node)
+    #     try:
+    #         name = node.items[0].context_expr.func.id
+    #     except:
+    #         name = node.items[0].context_expr.func.attr
+    #     var_holder = None
+    #     if node.items[0].optional_vars:
+    #         var_holder = node.items[0].optional_vars.id
+    #         # todo: how to use this?
+    #         setter = self.get_setter(var_holder)
+    #         pathname = self.as_literal(name)
+    #         self.stack.append(f"[{setter}, {pathname}]")
+    #     self.stack.append(f"[{name},")
+
+    #     body_parser = self.sub_parser(*node.body)
+    #     self.stack.append(body_parser.format())
+    #     self.stack.append(f"] // end {name}")
+
+
+
+
     def report(self):
         for item in self.stack:
             print(item)
@@ -679,6 +765,16 @@ def compile(filename, out_filename=''):
         input_file = source.read()
 
     tree = ast.parse(input_file)
+
+    prepass = Prepass()
+    prepass.visit(tree)
+
+    import pprint
+    pprint.pprint (prepass.functions)
+
+    print (prepass.zbrush_aliases)
+
+
     analyzer = Analyzer(0, input_file=input_file)
     analyzer.visit(tree)
 
@@ -693,22 +789,3 @@ def compile(filename, out_filename=''):
 
     return out_filename, analyzer.format()
 
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        prog="zsc",
-        description=f'Python to ZScript transpiler ({VERSION})'
-    )
-    parser.add_argument("input", help="path to python source file")
-    parser.add_argument(
-        "--output", help="optional output file (otherwise, uses the same name as the input file with .txt extension)")
-    parser.add_argument(
-        "--show", help="if true, print the transpiled file to stdout", action='store_true')
-
-    args = parser.parse_args()
-    output, result = compile(args.input, out_filename=args.output or '')
-
-    if args.show:
-        print(result)
-    else:
-        print(output)

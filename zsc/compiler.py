@@ -1,9 +1,9 @@
-# zsc.py
-
 import io
 import ast
 import logging
-import argparse
+import inspect
+
+from . import zbrush
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler())
@@ -14,12 +14,21 @@ WARN_ON_COMPARISONS = True
 
 VERSION = '0.1.0'
 
+class ParseError (ValueError):
+    pass
 
 class Prepass(ast.NodeVisitor):
+    """
+    This runs a prepass which collects all function calls,
+    so we know which ones have been defined and which ones
+    are zbrush-native
+    """
+    
+    ALLOWED_MODULES = 'math', 'zbrush', 'zsc.zbrush', 'random'
 
     def __init__(self):
-        self.functions = {}
-        self.zbrush_mod = None
+        self.user_functions = {}
+        self.zbrush_functions = {}
         self.zbrush_aliases = {
             "sin": "SIN",
             "cos": "COS",
@@ -40,15 +49,21 @@ class Prepass(ast.NodeVisitor):
             'min': 'MIN',
             'max': 'MAX'
         }
-        self.zbrush_function = {}
+
+        for k, v in inspect.getmembers(zbrush):
+            if (not "_" in k) and callable(v):
+                self.zbrush_aliases[k] = k
+                self.zbrush_functions[k] = inspect.getfullargspec(v)
 
     def get_call_name(self, node):
+        if (not isinstance(node, ast.Call)):
+            return '', '',''
         try:
             prefix = ''
             name = node.func.id
         except:
             prefix = node.func.value.id
-            name = node.func.attr
+            name = node.func.attr 
 
         alias = self.zbrush_aliases.get(name,'')
         if not alias and prefix == 'zbrush':
@@ -57,25 +72,39 @@ class Prepass(ast.NodeVisitor):
 
 
     def visit_Import(self,  node):
-
-        for name in node.names:
-            if 'zbrush' in name.name:
-                zname = name.name.split(".")[-1]
-                self.zbrush_aliases[name.asname or name.name] = zname
+        """
+        Raise on i
+        """
+        for mod in node.names:
+            name = mod.name.split(".")[0]
+            if name not in self.ALLOWED_MODULES:
+                raise ParseError(f"Illegal import '{name}' in line {node.lineno}.  Supported imports are {self.ALLOWED_MODULES}")
 
     def visit_ImportFrom(self, node):
 
-        if node.module == 'zbrush':
-            for name in node.names:
-                self.zbrush_aliases[name.asname or name.name] = name.name
+        if node.module not in self.ALLOWED_MODULES:
+            raise ParseError(f"Illegal import '{node.module}' in line {node.lineno}.  Supported imports are {self.ALLOWED_MODULES}")
+
+        for name in node.names:
+            if name.asname:
+                self.zbrush_aliases[name.asname] = name.name
 
     def visit_Call(self, node):
-        self.functions[self.get_call_name(node)] = node
+        if self.is_zbrush_function(node):
+            print ("found", node)
+            return
+        self.user_functions[self.get_call_name(node)] = node
 
     def is_defined(self, node):
         return self.get_call_name(node) in self.functions
 
+    def is_zbrush_function(self, node):
+        prefix, name, alias = self.get_call_name(node)
+        return name in self.zbrush_aliases or alias in self.zbrush_aliases
 
+    def is_user_function(self, node):
+        prefix, name, alias = self.get_call_name(node)
+        return name not in self.zbrush_aliases and name in self.functions
 
 
 
@@ -769,11 +798,9 @@ def compile(filename, out_filename=''):
     prepass = Prepass()
     prepass.visit(tree)
 
-    import pprint
-    pprint.pprint (prepass.functions)
-
+    print (prepass.user_functions)
     print (prepass.zbrush_aliases)
-
+    print (prepass.zbrush_functions)
 
     analyzer = Analyzer(0, input_file=input_file)
     analyzer.visit(tree)

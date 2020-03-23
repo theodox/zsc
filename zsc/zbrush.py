@@ -15,13 +15,17 @@ Not all functions in the zscript command list are represented directly as functi
 are omitted are represented by other python constructs
 
 """
-from typing import Optional, Any, NewType
+from typing import Optional, Any, NewType, Callable
 
-StrokeData = NewType()
-MultipleStrokeData = NewType()
-MemBlock = NewType()
-ZBrushCommandList = NewType()
+class StrokeData:
+    pass
 
+class MultipleStrokeData:
+    pass
+
+class MemBlock:
+    pass
+    
 
 def BackColorSet(Red: int, Green: int, Blue: int) -> None:
     """
@@ -238,7 +242,7 @@ def FileDelete(FileName: str) -> int:
     pass
 
 
-def FileExecute(FileName: str, MethodName: str, TextInputMem: MemBlock = None, Number: float = 0, InOutMem1: MemBlock = None, InOutMem2: MemBlock: None) -> int:
+def FileExecute(FileName: str, MethodName: str, TextInputMem: MemBlock = None, Number: float = 0, InOutMem1: MemBlock = None, InOutMem2: MemBlock = None) -> int:
     """
     Executes the specified plugin file (DLL).
 
@@ -463,7 +467,7 @@ def HotKeyText(InterfacePath: str) -> None:
 #------------- interface
 
 
-def IButton(ButtonText: str, PopupText: str = None, Commands: ZBrushCommandList = ..., Disabled: int = 0, Width: int = 0, Hotkey: str = '', Icon: str = '', Height: int = 0) -> None:
+def IButton(ButtonText: str, PopupText: str = None, Commands: Callable = ..., Disabled: int = 0, Width: int = 0, Hotkey: str = '', Icon: str = '', Height: int = 0) -> None:
     """
     Creates an interactive push button
     """
@@ -561,7 +565,7 @@ def IFadeOut(FadeOutSpeed=0.5):
     pass
 
 
-def IFreeze(Commands: ZBrushCommandList = ..., FadeOutSpeed=0.05):
+def IFreeze(Commands: Callable = ..., FadeOutSpeed=0.05):
     """
     Disables interface updates.
 
@@ -696,7 +700,7 @@ def IHPos(InterfaceItemPath, UseGlobalCoords=0):
     pass
 
 
-def IKeyPress(KeyCode, Commands: ZBrushCommandList = ..., HCursor=None, VCursor=None):
+def IKeyPress(KeyCode, Commands: Callable = ..., HCursor=None, VCursor=None):
     """
     Simulates a key press
 
@@ -922,7 +926,7 @@ def IsUnlocked(InterfaceItemPath):
     pass
 
 
-def ISwitch(ButtonText, InitialState, PopupText, PressCommands : ZBrushCommandList = ..., UnpressedCommands : ZBrushCommandList = ..., InitiallyDisabled=0, ButtonWidth=0):
+def ISwitch(ButtonText, InitialState, PopupText, PressCommands : Callable = ..., UnpressedCommands : Callable = ..., InitiallyDisabled=0, ButtonWidth=0):
     """
     Creates an interactive switch
     InitialState (1=pressed, 0=unpressed),
@@ -2156,8 +2160,7 @@ def VarSize(VariableName):
 #     """
 #     Gets the value of a named variable
 #
-    Output: Value of the named variable
-
+#    Output: Value of the named variable
 #     """
 #     pass
 
@@ -2211,7 +2214,7 @@ def ZBrushPrioritySet(Priority):
     pass
 
 
-def ZSphereAdd(xPos, yPos, zPos, Radius, ParentIndex,  color=0x000000, Mask=0, TimeStamp=0, Flags=0):
+def ZSphereAdd(xPos: float, yPos: float, zPos: float, Radius:float , ParentIndex: int = 0,  color=0x000000, Mask=0, TimeStamp=0, Flags=0) -> int:
     """
     Adds new ZSphere to the currently active ZSpheres tool
 
@@ -2221,7 +2224,7 @@ def ZSphereAdd(xPos, yPos, zPos, Radius, ParentIndex,  color=0x000000, Mask=0, T
     pass
 
 
-def ZSphereDel(ZSphereIndex):
+def ZSphereDel(ZSphereIndex) -> int:
     """
     Deletes a ZSphere from the currently active ZSpheres tool
 
@@ -2230,7 +2233,7 @@ def ZSphereDel(ZSphereIndex):
     pass
 
 
-def ZSphereEdit(ZSphereCommand, StoreUndo):
+def ZSphereEdit(ZSphereCommand, StoreUndo: int = 0) -> int:
     """
     Prepares the currently active ZSpheres tool for ZScript editing session.
 
@@ -2277,7 +2280,7 @@ def ZSphereGet(Property, ZSphereIndex=None, SecondIndex=None):
     pass
 
 
-def ZSphereSet(Property, ZSphereIndex=None, NewValue):
+def ZSphereSet(Property, ZSphereIndex: int = 0, NewValue: int = 0) -> None:
     """
     Sets property on the current ZSphere tool or tool at supplied index
 

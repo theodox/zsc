@@ -238,7 +238,7 @@ def FileDelete(FileName: str) -> int:
     pass
 
 
-def FileExecute(FileName:str, MethodName: str, TextInputMem : MemBlock = None, Number: float= 0, InOutMem1: MemBlock = None, InOutMem2: MemBlock: None) -> int:
+def FileExecute(FileName: str, MethodName: str, TextInputMem: MemBlock = None, Number: float = 0, InOutMem1: MemBlock = None, InOutMem2: MemBlock: None) -> int:
     """
     Executes the specified plugin file (DLL).
 
@@ -256,12 +256,12 @@ def FileExists(FileName: str) -> int:
     pass
 
 
-def FileGetInfo(FileName: str, InfoIndex: int) ->float:
+def FileGetInfo(FileName: str, InfoIndex: int) -> float:
     """
     Retrieve information about a specified file.
-    
+
     InfoIndex values:
-    
+
         1: file size (in mb)
         2 -7: Creation date: year, month(1-12), day, hour, minutes, seconds
         8 -13: Modified date: year, month(1-12), day, hour, minutes, seconds
@@ -283,7 +283,7 @@ def FileNameAdvance(FileNameBase: str, NumDigits: int, AddCopyTag: int) -> str:
     pass
 
 
-def FileNameAsk(Extensions: str, DefaultName: str = None, DialogTitle: str = None ) -> str:
+def FileNameAsk(Extensions: str, DefaultName: str = None, DialogTitle: str = None) -> str:
     """
     Asks user for a file name
     If DefaultName is omitted, it's an Open dialog
@@ -296,7 +296,7 @@ def FileNameAsk(Extensions: str, DefaultName: str = None, DialogTitle: str = Non
 def FileNameExtract(FileName: str, Component: int) -> str:
     """
     Extracts filename components. 
-    
+
     Components:
         1: path
         2: name
@@ -309,7 +309,6 @@ def FileNameExtract(FileName: str, Component: int) -> str:
     pass
     # todo: should we use path.splitext, basename, etc?
 
-    
 
 def FileNameGetLastTyped() -> str:
     """
@@ -356,7 +355,7 @@ def FileNameMake(BaseFileName: str, Index: int, NumDigits: int) -> str:
     pass
 
 
-def FileNameResolvePath(LocalFileName: str) ->str:
+def FileNameResolvePath(LocalFileName: str) -> str:
     """
     Resolves local path to full path
 
@@ -365,7 +364,7 @@ def FileNameResolvePath(LocalFileName: str) ->str:
     pass
 
 
-def FileNameSetNext(FileName: str, TemplatePath: str=None) -> None:
+def FileNameSetNext(FileName: str, TemplatePath: str = None) -> None:
     """
     Pre-sets the file name that will be used in the next Save/Load action
     """
@@ -454,6 +453,7 @@ def GetActiveToolPath() -> str:
     pass
 '''
 
+
 def HotKeyText(InterfacePath: str) -> None:
     """
     Displays a hot-key for the specified interface item
@@ -463,13 +463,14 @@ def HotKeyText(InterfacePath: str) -> None:
 #------------- interface
 
 
-def IButton(ButtonText: str, PopupText: str = None, Commands: ZBrushCommandList : None , Disabled: int = 0, Width: int = 0, Hotkey: str ='', Icon: str ='', Height: int =0) -> None:
+def IButton(ButtonText: str, PopupText: str = None, Commands: ZBrushCommandList = ..., Disabled: int = 0, Width: int = 0, Hotkey: str = '', Icon: str = '', Height: int = 0) -> None:
     """
     Creates an interactive push button
     """
     pass
 
 # TODO: Pick up type annotations here
+
 
 def IClick(InterfacePath, *positions):
     """
@@ -560,7 +561,7 @@ def IFadeOut(FadeOutSpeed=0.5):
     pass
 
 
-def IFreeze(CommandS, FadeOutSpeed=0.05):
+def IFreeze(Commands: ZBrushCommandList = ..., FadeOutSpeed=0.05):
     """
     Disables interface updates.
 
@@ -695,7 +696,7 @@ def IHPos(InterfaceItemPath, UseGlobalCoords=0):
     pass
 
 
-def IKeyPress(KeyCode, Commands, HCursor=None, VCursor=None):
+def IKeyPress(KeyCode, Commands: ZBrushCommandList = ..., HCursor=None, VCursor=None):
     """
     Simulates a key press
 
@@ -921,7 +922,7 @@ def IsUnlocked(InterfaceItemPath):
     pass
 
 
-def ISwitch(ButtonText, InitialState, PopupText, PressCommands, UnpressedCommands, InitiallyDisabled=0, ButtonWidth=0):
+def ISwitch(ButtonText, InitialState, PopupText, PressCommands : ZBrushCommandList = ..., UnpressedCommands : ZBrushCommandList = ..., InitiallyDisabled=0, ButtonWidth=0):
     """
     Creates an interactive switch
     InitialState (1=pressed, 0=unpressed),
@@ -2155,10 +2156,11 @@ def VarSize(VariableName):
 #     """
 #     Gets the value of a named variable
 #
-     Output: Value of the named variable
+    Output: Value of the named variable
 
 #     """
 #     pass
+
 
 def ZBrushInfo(InfoType):
     """

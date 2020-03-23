@@ -703,6 +703,7 @@ def compile(filename, out_filename=''):
     prepass.visit(tree)
 
     print (prepass.user_functions)
+    print (prepass.module_aliases)
 
     analyzer = Analyzer(0, input_file=input_file)
     analyzer.visit(tree)

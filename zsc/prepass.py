@@ -15,6 +15,7 @@ class Prepass(ast.NodeVisitor):
     ALLOWED_MODULES = 'math', 'zbrush', 'zsc', 'random'
 
     def __init__(self):
+        self.module_aliases = {}
         self.user_functions = {}
         self.zbrush_functions = {}
         self.zbrush_aliases = {
@@ -58,21 +59,29 @@ class Prepass(ast.NodeVisitor):
             prefix = node.func.value.id
             name = node.func.attr
 
-        alias = self.zbrush_aliases.get(name, '')
-        if not alias and prefix == 'zbrush':
-            alias = name
-        return prefix, name, alias
+        return prefix, name
 
     def visit_Import(self,  node):
         """
         Raise on illegal imports
         """
         for mod in node.names:
-            print ("import", mod.name, mod.asname)
-            name = mod.name.split(".")[0]
-            if name not in self.ALLOWED_MODULES:
+
+            if '.' in mod.name:
+                mod_name, _, func = mod.name.rpartition(".")
+                check_name = mod_name
+            else:
+                mod_name = mod.asname or mod.name
+                func = ""
+                check_name = mod.name
+
+            self.module_aliases[mod_name] = mod.name
+
+            if check_name not in self.ALLOWED_MODULES:
                 raise ParseError(
-                    f"Illegal import '{name}' in line {node.lineno}.  Supported imports are {self.ALLOWED_MODULES}")
+                    f"Illegal import '{check_name}' in line {node.lineno}.  Supported imports are {self.ALLOWED_MODULES}")
+
+            
 
     def visit_ImportFrom(self, node):
         """
@@ -90,7 +99,7 @@ class Prepass(ast.NodeVisitor):
             allowed_names = self.random_imports
         
         for name in node.names:
-            print ("importfrom", name.name, name.asname)
+
             if name.name not in allowed_names:
                 raise ParseError(f"Unrecognized import '{name.name}' from module '{node.module}' in line {node.lineno}")
             if name.asname and node.module in ('zbrush', 'zsc.zbrush'):
@@ -116,7 +125,7 @@ class Prepass(ast.NodeVisitor):
 
     def visit_Call(self, node):
             
-        prefix, name, alias = self.get_call_name(node)
+        prefix, name = self.get_call_name(node)
 
         if name in self.user_functions:
             expected =  len(self.user_functions[name].args)
@@ -125,10 +134,10 @@ class Prepass(ast.NodeVisitor):
                 raise ParseError(f"Function {name} requires {expected} arguments, was called with {got} in line {node.lineno}")
 
         if prefix in ('zbrush', 'zsc.zbrush'):
-            if name not in self.zbrush_functions and alias not in self.zbrush_functions:
-                raise ParseError(f"{alias or name} is not a Zbrush function: line {node.lineno}")
+            if name not in self.zbrush_functions:
+                raise ParseError(f"{name} is not a Zbrush function: line {node.lineno}")
 
-        if name in self.zbrush_functions or alias in self.zbrush_functions:
+        if name in self.zbrush_functions:
             # todo : here's where we ensure that the zbrush func signature is respected
             # defaults = 0
             # if self.zbrush_functions[name].defaults:
@@ -138,14 +147,15 @@ class Prepass(ast.NodeVisitor):
 
 
     def is_zbrush_function(self, node):
-        prefix, name, alias = self.get_call_name(node)
-        return name in self.zbrush_aliases or alias in self.zbrush_aliases
+        prefix, name = self.get_call_name(node)
+        return name in self.zbrush_aliases in self.zbrush_aliases
 
     def is_user_function(self, node):
-        prefix, name, alias = self.get_call_name(node)
+        prefix, name = self.get_call_name(node)
         return name not in self.zbrush_aliases and name in self.user_functions
 
     def get_zbrush_func(self, node):    
-        prefix, name, alias = self.get_call_name(node)
+        prefix, name = self.get_call_name(node)
+        return self.zbrush_aliases[name]
 
         

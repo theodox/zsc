@@ -1,6 +1,10 @@
 import ast
 import inspect
 from . import zbrush
+import logging
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.StreamHandler())
+logger.setLevel(logging.DEBUG)
 
 class ParseError (ValueError):
     pass
@@ -44,10 +48,10 @@ class Prepass(ast.NodeVisitor):
                 self.zbrush_aliases[k] = k
                 self.zbrush_functions[k] = inspect.getfullargspec(v)
 
-        self.math_imports = {("sin", "cos", "tan", "asin", "acos",
-                              "atan", "atan2", "log", "log10", "sqrt", "abs")}
-        self.random_imports = {('random', 'randint')}
-        self.intrinsics = {('max', 'min', 'len', 'abs', 'bool', 'int', 'float', 'frac')}
+        self.math_imports = {"sin", "cos", "tan", "asin", "acos",
+                              "atan", "atan2", "log", "log10", "sqrt", "abs"}
+        self.random_imports = {'random', 'randint'}
+        self.intrinsics = {'max', 'min', 'len', 'abs', 'bool', 'int', 'float', 'frac'}
 
     def get_call_name(self, node):
         if (not isinstance(node, ast.Call)):
@@ -138,6 +142,11 @@ class Prepass(ast.NodeVisitor):
                 raise ParseError(f"{name} is not a Zbrush function: line {node.lineno}")
 
         if name in self.zbrush_functions:
+            sig = self.zbrush_functions[name]
+            return_type = sig.annotations.get("return")
+            if return_type:
+                return_type = "-> " + return_type.__name__
+            logger.debug (f"function signature: {sig.args} {return_type}")
             # todo : here's where we ensure that the zbrush func signature is respected
             # defaults = 0
             # if self.zbrush_functions[name].defaults:
@@ -148,7 +157,7 @@ class Prepass(ast.NodeVisitor):
 
     def is_zbrush_function(self, node):
         prefix, name = self.get_call_name(node)
-        return name in self.zbrush_aliases in self.zbrush_aliases
+        return name in self.zbrush_aliases
 
     def is_user_function(self, node):
         prefix, name = self.get_call_name(node)
@@ -156,6 +165,28 @@ class Prepass(ast.NodeVisitor):
 
     def get_zbrush_func(self, node):    
         prefix, name = self.get_call_name(node)
-        return self.zbrush_aliases[name]
+        return self.zbrush_aliases.get(name)
 
+
+
+
+    def has_return_type(self, node):
+
+        if self.is_user_function(node):
+            return False
+        
+        _, name = self.get_call_name(node)
+
+        if name in self.intrinsics or name in self.math_imports or name in self.random_imports:
+            return True
+
+        zfunc = self.get_zbrush_func(node)
+        if not zfunc:
+            return False
+
+        details = self.zbrush_functions.get(zfunc)
+        if details: 
+            return 'return' in details.annotations
+
+        return False
         

@@ -17,15 +17,18 @@ are omitted are represented by other python constructs
 """
 from typing import Optional, Any, NewType, Callable
 
+
 class StrokeData:
     pass
+
 
 class MultipleStrokeData:
     pass
 
+
 class MemBlock:
     pass
-    
+
 
 def BackColorSet(Red: int, Green: int, Blue: int) -> None:
     """
@@ -926,7 +929,7 @@ def IsUnlocked(InterfaceItemPath):
     pass
 
 
-def ISwitch(ButtonText, InitialState, PopupText, PressCommands : Callable = ..., UnpressedCommands : Callable = ..., InitiallyDisabled=0, ButtonWidth=0):
+def ISwitch(ButtonText, InitialState, PopupText, PressCommands: Callable = ..., UnpressedCommands: Callable = ..., InitiallyDisabled=0, ButtonWidth=0):
     """
     Creates an interactive switch
     InitialState (1=pressed, 0=unpressed),
@@ -984,7 +987,7 @@ def IWidth(InterfaceItemPath):
     pass
 
 
-def MemCopy(FromBlock, FromOffset, ToBlock, ToOffset, NumBytes=None):
+def MemCopy(FromBlock, FromOffset, ToBlock, ToOffset, NumBytes=None) -> int:
     """
     Copies data from one memory block into another.
     if NumBytes is supplied, limit to that number of b
@@ -995,19 +998,18 @@ def MemCopy(FromBlock, FromOffset, ToBlock, ToOffset, NumBytes=None):
     pass
 
 
-def MemCreate(BlockID, BlockSize, InitialFill=None):
+def MemCreate(BlockID, BlockSize, InitialFill=None) -> int:
     """
     Creates a new memory block.
     If InitialFill is supplied, fil with that value
 
 
     Output: Returns the size of the new memory block or error code...0=Error -1=Memory already exists -2=Can't create memory block.
-
     """
     pass
 
 
-def MemCreateFromFile(BlockId, FileName, FileOffset=0, MaxBytes=None):
+def MemCreateFromFile(BlockId, FileName, FileOffset=0, MaxBytes=None) -> int:
     """
     Creates a new memory block from a disk file.
     if FileOffset is supplied, read fron that byte
@@ -1020,7 +1022,7 @@ def MemCreateFromFile(BlockId, FileName, FileOffset=0, MaxBytes=None):
     pass
 
 
-def MemDelete(BlockID):
+def MemDelete(BlockID) -> int:
     """
     Deletes a memory block.
 
@@ -1030,7 +1032,7 @@ def MemDelete(BlockID):
     pass
 
 
-def MemGetSize(BlockID):
+def MemGetSize(BlockID) -> int:
     """
     Returns the size of a memory block (Also useful for determining if a memory block already exists
 
@@ -1040,7 +1042,7 @@ def MemGetSize(BlockID):
     pass
 
 
-def MemMove(BlockID, FromOffset, ToOffset, NumBytes):
+def MemMove(BlockID, FromOffset, ToOffset, NumBytes) -> int:
     """
     Move data within an existing memory block.
 
@@ -1050,7 +1052,7 @@ def MemMove(BlockID, FromOffset, ToOffset, NumBytes):
     pass
 
 
-def MemMultiWrite(BlockID, Value, Format, Offset, RepeatCount, SubsequentOffset):
+def MemMultiWrite(BlockID, Value, Format, Offset, RepeatCount, SubsequentOffset) -> int:
     """
     Write data to a memory block.
     Format: (0=omited=float,  1=signed char, 2=unsigned char, 3=signed short, 4=unsigned short, 5=signed long, 6=unsigned long, 7=fixed16 (16.16)
@@ -1060,7 +1062,7 @@ def MemMultiWrite(BlockID, Value, Format, Offset, RepeatCount, SubsequentOffset)
     pass
 
 
-def MemRead(BlockID, ReadVariable, Format, Offset):
+def MemRead(BlockID, ReadVariable, Format, Offset) -> int:
     """
     Reads data from a memory block.
     Data format (0=omited=float,  1=signed char, 2=unsigned char, 3=signed short, 4=unsigned short, 5=signed long, 6=unsigned long, 7=fixed16 (16.16)
@@ -1071,7 +1073,7 @@ def MemRead(BlockID, ReadVariable, Format, Offset):
     pass
 
 
-def MemReadString(BlockID, StringVar, Offset, BreakAtLineEnd=0, SkipWhiteSpace=0, MaxReadLength=255):
+def MemReadString(BlockID, StringVar, Offset, BreakAtLineEnd=0, SkipWhiteSpace=0, MaxReadLength=255) -> int:
     """
     Reads a string from a memory block.
 
@@ -1081,7 +1083,7 @@ def MemReadString(BlockID, StringVar, Offset, BreakAtLineEnd=0, SkipWhiteSpace=0
     pass
 
 
-def MemResize(BlockID, NewSize, FillValue=None):
+def MemResize(BlockID, NewSize, FillValue=None) -> int:
     """
     Resizes an exsiting memory block.
     if FillValue supplied, use it to fill newly allocated memory
@@ -1092,7 +1094,7 @@ def MemResize(BlockID, NewSize, FillValue=None):
     pass
 
 
-def MemSaveToFile(BlockID, FileName, OverwriteIfExists=0):
+def MemSaveToFile(BlockID, FileName, OverwriteIfExists=0) -> int:
     """
     Saves an exisiting memory block to a disk file.
     Overwrite if exists? Set to nonzero value to save the file even if an identically named file already exists on disk. Default=Do not overwrite.
@@ -1103,7 +1105,7 @@ def MemSaveToFile(BlockID, FileName, OverwriteIfExists=0):
     pass
 
 
-def MemWrite(BlockID, Value, Format=0, Offset=0):
+def MemWrite(BlockID, Value, Format=0, Offset=0) -> int:
     """
     Write data to a memory block.
     Format (0=omited=float,  1=signed char, 2=unsigned char, 3=signed short, 4=unsigned short, 5=signed long, 6=unsigned long, 7=fixed16 (16.16)
@@ -1114,7 +1116,7 @@ def MemWrite(BlockID, Value, Format=0, Offset=0):
     pass
 
 
-def MemWriteString(BlockID, Value, Offset=0, WriteNullTerminator=1):
+def MemWriteString(BlockID, Value, Offset=0, WriteNullTerminator=1) -> int:
     """
     Writes a string into a memory block.
 
@@ -1131,7 +1133,7 @@ def MergeUndo():
     pass
 
 
-def Mesh3DGet(Property, IndexInput,  OptionalInput, OptionalOutput1=None,  OptionalOutput2=None,  OptionalOutput3=None,  OptionalOutput4=None,  OptionalOutput5=None,  OptionalOutput6=None,  OptionalOutput7=None,  OptionalOutput8=None):
+def Mesh3DGet(Property, IndexInput,  OptionalInput, OptionalOutput1=None,  OptionalOutput2=None,  OptionalOutput3=None,  OptionalOutput4=None,  OptionalOutput5=None,  OptionalOutput6=None,  OptionalOutput7=None,  OptionalOutput8=None) -> int:
     """
     Gets information about the currently active  Mesh3D tool.
     Property: 0=PointsCount, 1=FacesCount, 2=XYZ bounds, 3=UVBounds, 4=1stUVTile, 5=NxtUVTile, 6=PolysInUVTile, 7=3DAreaOfUVTile, 8=Full3DMeshArea
@@ -1152,7 +1154,7 @@ def MessageOK(Message, Title):
     pass
 
 
-def MessageOKCancel(Message, Title):
+def MessageOKCancel(Message, Title) -> int:
     """
     Displays a user message with CANCEL and OK buttons
 
@@ -1162,7 +1164,7 @@ def MessageOKCancel(Message, Title):
     pass
 
 
-def MessageYesNo(Message, Title):
+def MessageYesNo(Message, Title) -> int:
     """
     Displays a user message with YES and NO buttons
 
@@ -1172,7 +1174,7 @@ def MessageYesNo(Message, Title):
     pass
 
 
-def MessageYesNoCancel(Message, Title):
+def MessageYesNoCancel(Message, Title) -> int:
     """
     Displays a user message with YES,  NO and CANCEL buttons
 
@@ -1182,7 +1184,7 @@ def MessageYesNoCancel(Message, Title):
     pass
 
 
-def MouseHPos(UseGlobalCoordinates=0):
+def MouseHPos(UseGlobalCoordinates=0) -> int:
     """
     Returns the current H position of the mouse in Canvas or Global coordinates.
 
@@ -1192,7 +1194,7 @@ def MouseHPos(UseGlobalCoordinates=0):
     pass
 
 
-def MouseLButton():
+def MouseLButton() -> int:
     """
     Returns the current state of the left mouse button 
 
@@ -1202,7 +1204,7 @@ def MouseLButton():
     pass
 
 
-def MouseVPos(UseGlobalCoordinates=0):
+def MouseVPos(UseGlobalCoordinates=0) -> int:
     """
     Returns the current V position of the mouse in Canvas or Global coordinates.
 
@@ -1228,7 +1230,7 @@ def MTransformSet(BlockID, VariableIndex=0):
     pass
 
 
-def MVarDef(BlockID,  Count, InitialFill=0):
+def MVarDef(BlockID,  Count, InitialFill=0) -> int:
     """
     pass
 
@@ -1240,7 +1242,7 @@ def MVarDef(BlockID,  Count, InitialFill=0):
     pass
 
 
-def MVarGet(BlockID, VariableIndex):
+def MVarGet(BlockID, VariableIndex) -> float:
     """
     Reads a float value from a memory block.
 
@@ -1260,7 +1262,7 @@ def MVarSet(BlockID, VariableIndex):
     pass
 
 
-def NormalMapCreate(ImageWidth, ImageHeight, Smooth=1, SubPoly=0, Border=0, UVTile=None, UseTangentCoords=0):
+def NormalMapCreate(ImageWidth, ImageHeight, Smooth=1, SubPoly=0, Border=0, UVTile=None, UseTangentCoords=0) -> int:
     """
     Creates NormalMap
 
@@ -1270,7 +1272,7 @@ def NormalMapCreate(ImageWidth, ImageHeight, Smooth=1, SubPoly=0, Border=0, UVTi
     pass
 
 
-def Note(Text, InterfaceItemPath=None, DisplayDuration=0, PopupBackgroundColor=0x606060, OffsetDistance=48, Width=400,  WindowFillColor=None, FrameHorizontalSize=1, FrameVerticalSize=1, FrameLeft=0,  FrameTop=0, IconFileName=None):
+def Note(Text, InterfaceItemPath=None, DisplayDuration=0, PopupBackgroundColor=0x606060, OffsetDistance=48, Width=400,  WindowFillColor=None, FrameHorizontalSize=1, FrameVerticalSize=1, FrameLeft=0,  FrameTop=0, IconFileName=None) -> int:
     """
     Displays a note to the user.
 
@@ -1305,7 +1307,7 @@ def NoteIButton(ButtonText, ButtonIcon=None, InitiallyPressed=0, InitiallyDisabl
     pass
 
 
-def NoteIGet(NoteButtonIndexOrName):
+def NoteIGet(NoteButtonIndexOrName) -> int:
     """
     Returns the value of am NoteIButton which was shown in the last displayed Note.
 
@@ -1429,7 +1431,7 @@ def PenSetColor(Red, Green, Blue):
     pass
 
 
-def PixolPick(ComponentIndex, HPosition, VPosition):
+def PixolPick(ComponentIndex, HPosition, VPosition) -> int:
     """
     Retrieves information about a specified Pixol
     componentIndex: 0=CompositeColor ( 0x000000<->0xffffff  or red*65536+green*256+blue) 1=Z(-32576 to 32576) 2=Red(0 to 255 ) 3=Green(0 to 255 ) 4=Blue(0 to 255 )  5=MaterialIndex(0 to 255 ) 6=XNormal(-1 to 1) 7=YNormal(-1 to 1) 8=ZNormal(-1 to 0) 
@@ -1529,7 +1531,7 @@ def SleepAgain(Time, EventType):
     pass
 
 
-def SoundPlay(BlockID, PlayMode):
+def SoundPlay(BlockID, PlayMode) -> int:
     """
     Plays the sounds loaded into a specified memory block.
     PlayMode: . 0=default=Play once,  dont wait for completion. 1=Play once,  wait for completion. 2=Play loop,  dont wait for completion.):
@@ -1541,7 +1543,7 @@ def SoundPlay(BlockID, PlayMode):
     pass
 
 
-def SoundStop(BlockId):
+def SoundStop(BlockId) -> int:
     """
     Stops the currently specified sound. 
 
@@ -1554,7 +1556,7 @@ def SoundStop(BlockId):
 #----- strings
 
 
-def StrAsk(InitialString, Title=""):
+def StrAsk(InitialString, Title="") -> str:
     """
     Asks user to input a string.
 
@@ -1564,7 +1566,7 @@ def StrAsk(InitialString, Title=""):
     pass
 
 
-def StrExtract(InputString, StartCharacterIndex, EndCharacterIndex):
+def StrExtract(InputString, StartCharacterIndex, EndCharacterIndex) -> str:
     """
     Returns specified portion of the input string
 
@@ -1574,7 +1576,7 @@ def StrExtract(InputString, StartCharacterIndex, EndCharacterIndex):
     pass
 
 
-def StrFind(FindStr, InStr, StartIndex=0):
+def StrFind(FindStr, InStr, StartIndex=0) -> int:
     """
     Locate a string within a string.
 
@@ -1584,7 +1586,7 @@ def StrFind(FindStr, InStr, StartIndex=0):
     pass
 
 
-def StrFromAsc(CharacterNum):
+def StrFromAsc(CharacterNum) -> str:
     """
     Returns the character of the specified Ascii value.
 
@@ -1594,7 +1596,7 @@ def StrFromAsc(CharacterNum):
     pass
 
 
-def StrLength(InputStr):
+def StrLength(InputStr) -> int:
     """
     Returns the number of characters in the input string.
 
@@ -1604,7 +1606,7 @@ def StrLength(InputStr):
     pass
 
 
-def StrLower(InputString):
+def StrLower(InputString) -> str:
     """
     Returns the lowercase version of the input string.
 
@@ -1614,7 +1616,7 @@ def StrLower(InputString):
     pass
 
 
-def StrMerge(Str1, Str2, Str3="", Str4="", Str5="", Str6="", Str7="", Str8="", Str9="", Str10="", Str11="", Str12=""):
+def StrMerge(Str1, Str2, Str3="", Str4="", Str5="", Str6="", Str7="", Str8="", Str9="", Str10="", Str11="", Str12="") -> str:
     """
     Combines two (or more) strings into one string.
 
@@ -1624,7 +1626,7 @@ def StrMerge(Str1, Str2, Str3="", Str4="", Str5="", Str6="", Str7="", Str8="", S
     pass
 
 
-def StrToAsc(InputString, Offset=0):
+def StrToAsc(InputString, Offset=0) -> int:
     """
     Returns the Ascii value of a character.
 
@@ -1634,7 +1636,7 @@ def StrToAsc(InputString, Offset=0):
     pass
 
 
-def StrUpper(InputStr):
+def StrUpper(InputStr) -> str:
     """
     Returns the uppercase version of the input string.
 
@@ -1644,7 +1646,7 @@ def StrUpper(InputStr):
     pass
 
 
-def StrokeGetInfo(StrokeVariable, InfoNumber, PointIndex):
+def StrokeGetInfo(StrokeVariable, InfoNumber, PointIndex) -> object:
     """
     Retrieves the information from a specified Stroke-type Variable
 
@@ -1656,7 +1658,7 @@ def StrokeGetInfo(StrokeVariable, InfoNumber, PointIndex):
 # stroke -------------
 
 
-def StrokeGetLast():
+def StrokeGetLast() -> object:
     """
     Retrieves the last drawn brush stroke
 
@@ -1666,7 +1668,7 @@ def StrokeGetLast():
     pass
 
 
-def StrokeLoad(FileName):
+def StrokeLoad(FileName) -> object:
     """
     Loads a brush-stroke text file
 
@@ -1676,7 +1678,7 @@ def StrokeLoad(FileName):
     pass
 
 
-def StrokesLoad(FileName):
+def StrokesLoad(FileName) -> object:
     """
     Loads a brush-strokes text file
 
@@ -1694,7 +1696,7 @@ def SubTitle(Text):
     pass
 
 
-def SubToolGetActiveIndex():
+def SubToolGetActiveIndex() -> int:
     """
     Returns the index of the active subtool
 
@@ -1704,7 +1706,7 @@ def SubToolGetActiveIndex():
     pass
 
 
-def SubToolGetCount():
+def SubToolGetCount() -> int:
     """
     Returns the number of subtools in the active tool
 
@@ -1714,7 +1716,7 @@ def SubToolGetCount():
     pass
 
 
-def SubToolGetFolderIndex(SubtoolIndex):
+def SubToolGetFolderIndex(SubtoolIndex) -> int:
     """
     Returns the folder index in which this subtool is contained
     If SubtoolIndex omited then use the currently selected tool.
@@ -1727,7 +1729,7 @@ def SubToolGetFolderIndex(SubtoolIndex):
     pass
 
 
-def SubToolGetFolderName(SubtoolIndex):
+def SubToolGetFolderName(SubtoolIndex) -> str:
     """
     Returns the ffolder name of the specified subtool
     If SubtoolIndex omited then use the currently selected tool.
@@ -1738,7 +1740,7 @@ def SubToolGetFolderName(SubtoolIndex):
     pass
 
 
-def SubToolGetID(SubtoolIndex):
+def SubToolGetID(SubtoolIndex) -> int:
     """
     Returns the unique subtool ID
     If SubtoolIndex omited then use the currently selected tool.
@@ -1749,7 +1751,7 @@ def SubToolGetID(SubtoolIndex):
     pass
 
 
-def SubToolGetStatus(SubtoolIndex):
+def SubToolGetStatus(SubtoolIndex) -> int:
     """
     Returns the status of a subtool
     If SubtoolIndex omited then use the currently selected tool.
@@ -1760,7 +1762,7 @@ def SubToolGetStatus(SubtoolIndex):
     pass
 
 
-def SubToolLocate(SubtoolID):
+def SubToolLocate(SubtoolID) -> int:
     """
     Locates a subtool by the specified unique ID
 
@@ -1770,7 +1772,7 @@ def SubToolLocate(SubtoolID):
     pass
 
 
-def SubToolSelect(SubtoolIndex):
+def SubToolSelect(SubtoolIndex) -> int:
     """
     Selects the specified subtool index
 
@@ -1780,7 +1782,7 @@ def SubToolSelect(SubtoolIndex):
     pass
 
 
-def SubToolSetStatus(SubtoolIndex, Value):
+def SubToolSetStatus(SubtoolIndex, Value) -> int:
     """
     Sets the status of a subtool
     If SubtoolIndex omited then use the currently selected tool.
@@ -1789,7 +1791,7 @@ def SubToolSetStatus(SubtoolIndex, Value):
     pass
 
 
-def TextCalcWidth(Text):
+def TextCalcWidth(Text) -> int:
     """
     Calculates the pixel-width of the specified string
 
@@ -1807,7 +1809,7 @@ def Title(Text):
     pass
 
 
-def TLDeleteKeyFrame(KeyIndex):
+def TLDeleteKeyFrame(KeyIndex) -> int:
     """
     Delete specified key frame index of the active track
 
@@ -1817,7 +1819,7 @@ def TLDeleteKeyFrame(KeyIndex):
     pass
 
 
-def TLGetActiveTrackIndex():
+def TLGetActiveTrackIndex() -> int:
     """
     Returns the index of the active track
 
@@ -1827,7 +1829,7 @@ def TLGetActiveTrackIndex():
     pass
 
 
-def TLGetKeyFramesCount():
+def TLGetKeyFramesCount() -> int:
     """
     Returns the total number of key frames in the active track
 
@@ -1837,7 +1839,7 @@ def TLGetKeyFramesCount():
     pass
 
 
-def TLGetKeyFrameTime(KeyIndex):
+def TLGetKeyFrameTime(KeyIndex) -> int:
     """
     Get the time of the specified key frame index of the active track
 
@@ -1847,7 +1849,7 @@ def TLGetKeyFrameTime(KeyIndex):
     pass
 
 
-def TLGetTime():
+def TLGetTime() -> float:
     """
     Returns the current TimeLine knob position in  0.0 to 1.0 range
 
@@ -1857,7 +1859,7 @@ def TLGetTime():
     pass
 
 
-def TLGotoKeyFrameTime(KeyIndex):
+def TLGotoKeyFrameTime(KeyIndex) -> float:
     """
     Move TimeLine knob position to specified key frame index of the active track
 
@@ -1867,7 +1869,7 @@ def TLGotoKeyFrameTime(KeyIndex):
     pass
 
 
-def TLGotoTime(Time):
+def TLGotoTime(Time) -> int:
     """
     Sets the current TimeLine knob position in  0.0 to 1.0 range
 
@@ -1877,7 +1879,7 @@ def TLGotoTime(Time):
     pass
 
 
-def TLNewKeyFrame(Time=None):
+def TLNewKeyFrame(Time=None) -> int:
     """
     Create a new key frame in the active track
     if Time is omitted, use current time
@@ -1888,7 +1890,7 @@ def TLNewKeyFrame(Time=None):
     pass
 
 
-def TLSetActiveTrackIndex(TrackIndex):
+def TLSetActiveTrackIndex(TrackIndex) -> int:
     """
     Sets the active track index
 
@@ -1898,7 +1900,7 @@ def TLSetActiveTrackIndex(TrackIndex):
     pass
 
 
-def TLSetKeyFrameTime(KeyIndex, Time):
+def TLSetKeyFrameTime(KeyIndex, Time) -> int:
     """
     Set the time of the specified key frame index of the active track
     Time is 0-1
@@ -1909,7 +1911,7 @@ def TLSetKeyFrameTime(KeyIndex, Time):
     pass
 
 
-def ToolGetActiveIndex():
+def ToolGetActiveIndex() -> int:
     """
     Returns the index of the active tool
 
@@ -1919,7 +1921,7 @@ def ToolGetActiveIndex():
     pass
 
 
-def ToolGetCount():
+def ToolGetCount() -> int:
     """
     Returns the number of available tools
 
@@ -1929,7 +1931,7 @@ def ToolGetCount():
     pass
 
 
-def ToolGetPath(ToolIndex=None):
+def ToolGetPath(ToolIndex: int = None) -> int:
     """
     Returns the file path or name of the specified tool
     If ToolIndex is omited then use the currently selected tool.
@@ -1940,7 +1942,7 @@ def ToolGetPath(ToolIndex=None):
     pass
 
 
-def ToolGetSubToolID(ToolIndex=None, SubtoolIndex=None):
+def ToolGetSubToolID(ToolIndex: int = None, SubtoolIndex: int = None) -> int:
     """
     Returns the unique subtool ID
     If ToolIndex is omited then use the currently selected tool.
@@ -1952,7 +1954,7 @@ def ToolGetSubToolID(ToolIndex=None, SubtoolIndex=None):
     pass
 
 
-def ToolGetSubToolsCount(ToolIndex):
+def ToolGetSubToolsCount(ToolIndex: int) -> int:
     """
     Returns the number of subtools in the specified tool index
     If ToolIndex is omited then use the currently selected tool.
@@ -1963,7 +1965,7 @@ def ToolGetSubToolsCount(ToolIndex):
     pass
 
 
-def ToolLocateSubTool(SubToolID, SubtoolIndex=None):
+def ToolLocateSubTool(SubToolID: int, SubtoolIndex: int = None) -> int:
     """
     Locates a subtool by the specified unique ID
 
@@ -1972,7 +1974,7 @@ def ToolLocateSubTool(SubToolID, SubtoolIndex=None):
     pass
 
 
-def ToolSelect(SubToolIndex):
+def ToolSelect(SubToolIndex: int) -> int:
     """
     Selects the specified tool index
 
@@ -1982,7 +1984,7 @@ def ToolSelect(SubToolIndex):
     pass
 
 
-def ToolSetPath(SubToolIndex=None, NewPath=""):
+def ToolSetPath(SubToolIndex: int = None, NewPath: str = "") -> int:
     """
     Sets the file path or name of the specified tool
     If Tool Index  omited then use the currently selected tool.
@@ -2002,7 +2004,7 @@ def TransformGet(xPos, yPos, zPos, xScale, yScale, zScale, xRotate, yRotate, zRo
     pass
 
 
-def TransformSet(xPos, yPos, zPos, xScale, yScale, zScale, xRotate, yRotate, zRotate):
+def TransformSet(xPos: float, yPos: float, zPos: float, xScale: float, yScale: float, zScale: float, xRotate: float, yRotate: float, zRotate: float):
     """
     Sets new transformation values.
 
@@ -2010,7 +2012,7 @@ def TransformSet(xPos, yPos, zPos, xScale, yScale, zScale, xRotate, yRotate, zRo
     pass
 
 
-def TransposeGet(StarXPos, StartYPos, StartZPos, EndXPos, EndYPos, EndZPos, LineLength, RedAxisX, RedAxisY, RedAxisZ, GreenAxisX, GreenAxisY, GreenAxisZ, BlueAxisX, BlueAxisY, BlueAxisZ):
+def TransposeGet(StarXPos: int, StartYPos: int, StartZPos: int, EndXPos: int, EndYPos: int, EndZPos: int, LineLength: int, RedAxisX: int, RedAxisY: int, RedAxisZ: int, GreenAxisX: int, GreenAxisY: int, GreenAxisZ: int, BlueAxisX: int, BlueAxisY: int, BlueAxisZ: int):
     """
     Gets current Transpose Action Line values.
 
@@ -2136,7 +2138,7 @@ def VarSave(VariableName, FileName):
 
 
 # handled via len() for arrays (TODO: has to distinguish between strings and arrays!)
-def VarSize(VariableName):
+def VarSize(VariableName: str) -> int:
     """
     Returns the number of items in a variable or in a list
 
@@ -2165,7 +2167,7 @@ def VarSize(VariableName):
 #     pass
 
 
-def ZBrushInfo(InfoType):
+def ZBrushInfo(InfoType: int) -> int:
     """
     Integer type code:
 
@@ -2192,7 +2194,7 @@ def ZBrushInfo(InfoType):
     """
 
 
-def ZBrushPriorityGet():
+def ZBrushPriorityGet() -> int:
     """
     Returns the task-priority of ZBrush.
 
@@ -2201,7 +2203,7 @@ def ZBrushPriorityGet():
     pass
 
 
-def ZBrushPrioritySet(Priority):
+def ZBrushPrioritySet(Priority: int) -> int:
     """
     Sets the task-priority of ZBrush.
         -2: Low
@@ -2214,7 +2216,7 @@ def ZBrushPrioritySet(Priority):
     pass
 
 
-def ZSphereAdd(xPos: float, yPos: float, zPos: float, Radius:float , ParentIndex: int = 0,  color=0x000000, Mask=0, TimeStamp=0, Flags=0) -> int:
+def ZSphereAdd(xPos: float, yPos: float, zPos: float, Radius: float, ParentIndex: int = 0,  color=0x000000, Mask=0, TimeStamp=0, Flags=0) -> int:
     """
     Adds new ZSphere to the currently active ZSpheres tool
 

@@ -7,7 +7,7 @@ from .prepass import ParseError, Prepass
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler())
-logger.setLevel(logging.WARNING)
+logger.setLevel(logging.DEBUG)
 
 
 WARN_ON_COMPARISONS = True
@@ -15,12 +15,14 @@ WARN_ON_COMPARISONS = True
 VERSION = '0.1.0'
 
 class Analyzer(ast.NodeVisitor):
-    def __init__(self, indent=0, input_file='', context=None):
+    def __init__(self, indent=0, input_file='', context=None, prepass=None):
         self.input_file = input_file
         self.indent = indent
         self.context = context
         self.stack = []
         self.defined = []
+        self.prepass = prepass # an instance of the prepass visitor which collects all the function calls
+
 
         # these are functions which we recognize in input calls and convert to their
         # zbrush equivalents.  Not all have exact equivalents -- some zbrush
@@ -58,6 +60,7 @@ class Analyzer(ast.NodeVisitor):
             self.defined = self.context.defined
             self.funcs = self.context.funcs
             self.top_level_defs = self.context.top_level_defs
+            self.prepass = self.context.prepass
 
     def format(self):
         "newline separated list, with tabs"
@@ -457,112 +460,105 @@ class Analyzer(ast.NodeVisitor):
                     f"[VarSet, {varname}({idx}), {self.as_literal(item)}]")
 
     def visit_Assign(self, node):
+        logger.debug(f"assign (line {node.lineno})")
 
         varval = (node.value)
         varname = (node.targets[0].id)
         setter = self.get_setter(varname)
 
         if isinstance(varval, ast.BinOp) and isinstance(varval.left, ast.List):
+            #eg, xxx = [0] * 10
             self.handle_array_assign(node)
             return
 
         if isinstance(varval, ast.List):
+            # eg xxx = [1,2,3]
             self.handle_array_assign(node)
             return
 
         if type(varval) in (ast.Num, ast.Str, ast.Name):
+            # xxx = "A" 
+            # xxx = 1
+            # xxx = some_variable  
             varval = self.as_literal(varval)
-        elif isinstance(varval, ast.UnaryOp):
+            self.stack.append(f'[{setter}, {varname}, {varval}]')
+            return
 
-            if isinstance(varval.op, ast.USub):
-                target = self.as_literal(varval.operand)
-                self.stack.append (f"[{setter}, {varname}, [NEG, {target}]]")
+        if isinstance(varval, ast.BinOp):
+            # xxx = a + b , etc
+            parser = self.sub_parser(varval)
+            subval = parser.format_inline()
+            self.stack.append(f'[{setter}, {varname}, {subval}]')
+            return
+
+        if isinstance(varval, ast.UnaryOp) and isinstance(varval.op, ast.USub):
+            # a = -b -> [VarSet, a, [NEG, #b]]
+            target = self.as_literal(varval.operand)
+            self.stack.append (f"[{setter}, {varname}, [NEG, {target}]]")
+            return
+
+        if not isinstance(varval, ast.Call):
+            self.abort(f"can't parse {varval}", node)
+
+        # below here, we know it's a function call
+        # that must be either a zbrush function with a return type
+        # a math function (like 'sin' or 'cos')
+        # or a memory read
+
+        prefix, name = self.prepass.get_call_name(varval)
+        logger.debug(f"assign call {prefix}.{name}")
+
+        has_return = self.prepass.has_return_type(varval)
+    
+        logger.debug(f"is zfunc with return: {has_return}")
+        if isinstance(varval.func, ast.Attribute):
+            var_root = varname.split("(")[0]
+            if self.context or (var_root in self.top_level_defs):
+                setter = 'VarSet'
+            else:
+                setter = 'VarDef'
+                self.top_level_defs.append(var_root)
+
+            caller = varval.func.value.id
+
+            is_mem_create = varval.func.attr == 'MemCreate'
+
+            if is_mem_create:
+                arg_parser = self.sub_parser(*varval.args)
+                arg_string = arg_parser.format_inline()
+                if arg_string:
+                    arg_string = ", " + arg_string
+
+                self.stack.append(f'[MemCreate, {varname}{arg_string}]')
                 return
 
-        elif isinstance(varval, ast.Call):
-            # odo - refactor this out
+            arg_parse = self.sub_parser(*varval.args, func=True)
+            if not has_return:
+                
+                mem_name, mem_op = self.format_mem_op(name)
+                if not mem_name:
+                    self.abort("can only call zbrush functions or memory block functions in an assignment", node)
 
-            if isinstance(varval.func, ast.Attribute):
-                var_root = varname.split("(")[0]
-                if self.context or (var_root in self.top_level_defs):
-                    setter = 'VarSet'
-                else:
-                    setter = 'VarDef'
-                    self.top_level_defs.append(var_root)
-
-                caller = ", " + varval.func.value.id
-
-                is_mem_create = varval.func.attr == 'MemCreate'
-
-                if is_mem_create:
-                    arg_parser = self.sub_parser(*varval.args)
-                    arg_string = arg_parser.format_inline()
-                    if arg_string:
-                        arg_string = ", " + arg_string
-
-                    self.stack.append(f'[MemCreate, {varname}{arg_string}]')
-                    return
-
-                allowed_funcs = (
-                    "read_",
-                )
-
-                is_allowed = False
-                for f in allowed_funcs:
-                    is_allowed = is_allowed or f in varval.func.attr
-
-                if (not is_allowed and varval.func.attr not in self.funcs):
-                    self.abort(
-                        "can only call zbrush functions or memory block functions in an assignment", node)
-
-                if varval.func.attr in self.funcs:
-                    m_name = self.funcs[varval.func.attr]
-                    typecode = None
-                    caller = ""
-                else:
-                    # it's a memory object functon
-                    m_name, typecode = self.format_mem_op(varval.func.attr)
-                    if not m_name:
-                        self.abort(
-                            f"Unrecognized memory operation {varval.func.attr}",  node)
-
-                arg_parse = self.sub_parser(*varval.args, func=True)
                 args = arg_parse.stack
-                if typecode:
-                    args.insert(1, typecode)
+                if mem_op:
+                    args.insert(1, mem_op)
                 tail = ''
                 if args:
                     tail = ", ".join(args)
                     tail = ", " + tail
-                self.stack.append(
-                    f'[{setter}, {varname}, [{m_name}{caller}{tail}]]')
+                self.stack.append(f'[{setter}, {varname}, [{mem_name}, {caller}{tail}]]')
                 return
             else:
-                if varval.func.id == "len":
-                    # is a pound sign needed here?
-                    self.stack.append(
-                        f"[VarSet, {varname}, [VarSize, {varval.args[0].id}]]")
-                    return
-                elif varval.func.id in self.funcs:
-                    args  = [str(self.as_literal(v)) for v in varval.args]
-                    if args:
-                        args = ", ".join(args)
+                _, funcname = self.prepass.get_call_name(varval)
+                z_name = self.prepass.zbrush_aliases[funcname]
+                args = arg_parse.stack
+                tail = ''
+                if args:
+                    tail = ", ".join(args)
+                    tail = ", " + tail
+                self.stack.append(f'[{setter}, {varname}, [{z_name}{tail}]]')
 
-                    func_name = self.funcs.get(varval.func.id)
-                    self.stack.append(f'[{setter}, {varname}, [{func_name}, {args}]]')
-                    return
-            self.abort("Can't assign a function call in ZBrush", varval)
 
-        elif isinstance(varval, ast.BinOp):
-            parser = self.sub_parser(varval)
-            varval = parser.format_inline()
-
-        if not self.context and varval not in self.defined:
-            setter = f'[VarDef, {varname}, {varval}]'
-            self.defined.append(varname)
-        else:
-            setter = f"[VarSet, {varname}, {varval}]"
-        self.stack.append(setter)
 
     def visit_Lt(self, node):
         self.stack.append(" < ")
@@ -634,26 +630,6 @@ class Analyzer(ast.NodeVisitor):
         finally:
             self.indent += 1
 
-    # def visit_With(self, node):
-    #     if len(node.items) != 1:
-    #         self.abort("Cannot parts multiple context manager aliases", node)
-    #     try:
-    #         name = node.items[0].context_expr.func.id
-    #     except:
-    #         name = node.items[0].context_expr.func.attr
-    #     var_holder = None
-    #     if node.items[0].optional_vars:
-    #         var_holder = node.items[0].optional_vars.id
-    #         # todo: how to use this?
-    #         setter = self.get_setter(var_holder)
-    #         pathname = self.as_literal(name)
-    #         self.stack.append(f"[{setter}, {pathname}]")
-    #     self.stack.append(f"[{name},")
-
-    #     body_parser = self.sub_parser(*node.body)
-    #     self.stack.append(body_parser.format())
-    #     self.stack.append(f"] // end {name}")
-
 
 
 
@@ -705,7 +681,7 @@ def compile(filename, out_filename=''):
     print (prepass.user_functions)
     print (prepass.module_aliases)
 
-    analyzer = Analyzer(0, input_file=input_file)
+    analyzer = Analyzer(0, input_file=input_file, prepass=prepass)
     analyzer.visit(tree)
 
     out_filename = out_filename or filename.replace('.py', '.txt')

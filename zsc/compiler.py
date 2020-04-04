@@ -119,6 +119,8 @@ class Analyzer(ast.NodeVisitor):
         self.stack.append("")
         self.stack.append(f'[Loop, {loop_max},')
         loop_parser = self.sub_parser(*node.body)
+        if self.context:
+            loop_parser.indent += 1
 
         # loop body
         self.stack.append(loop_parser.format())
@@ -622,13 +624,16 @@ class Analyzer(ast.NodeVisitor):
                           ctx=ast.Load(), args=[ast.Num(n=65534)]),
             body=body_block
         )
-        try:
-            self.indent -= 1
-            subp = self.sub_parser(new_node)
+        #try:
+            #self.indent -= 1
+        subp = self.sub_parser(new_node)
+        if not self.context:
             subp.indent -= 1
-            self.stack.append(subp.format())
-        finally:
-            self.indent += 1
+            #if not self.context:
+            #    subp.indent -= 1
+        self.stack.append(subp.format())
+        #finally:
+            #self.indent += 1
 
 
 
@@ -665,7 +670,7 @@ class FunctionAnalyzer(Analyzer):
 
     def visit_Name(self, node):
         # Q - should this use the # prefix?
-        self.stack.append(node.id)
+        self.stack.append(f"#{node.id}")
 
 
 def compile(filename, out_filename=''):

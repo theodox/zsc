@@ -654,7 +654,7 @@ class Analyzer(ast.NodeVisitor):
 
     def sub_parser(self, *args, **kwargs):
         if kwargs.get('func'):
-            sub_parser = FunctionAnalyzer(context=self)
+            sub_parser = FunctionAnalyzer(context=self, prepass=self.prepass)
         else:
             sub_parser = Analyzer(context=self)
         sub_parser.indent += 1
@@ -669,8 +669,21 @@ class FunctionAnalyzer(Analyzer):
     """
 
     def visit_Name(self, node):
-        # Q - should this use the # prefix?
-        self.stack.append(f"#{node.id}")
+        if self.prepass.is_user_function(node):
+            # for UI Elements or other items that expect command lists,
+            # python code should make a no-arg function and pass it 
+            # directly, ie,
+            # 
+            #   def test():
+            #       zbrush.Note("OK") 
+            #
+            #   zBrush.IButton("Test", "", test)
+
+            self.stack.append(f"[RoutineCall, {node.id}]")
+        else:
+            # for variables passed as arguments to a function, use the # prefix
+            self.stack.append(f"#{node.id}")
+
 
 
 def compile(filename, out_filename=''):

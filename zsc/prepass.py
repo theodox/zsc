@@ -54,8 +54,10 @@ class Prepass(ast.NodeVisitor):
         self.intrinsics = {'max', 'min', 'len', 'abs', 'bool', 'int', 'float', 'frac'}
 
     def get_call_name(self, node):
+
         if (not isinstance(node, ast.Call)):
-            return '', '', ''
+            if hasattr(node, 'id'):
+                return '', node.id
         try:
             prefix = ''
             name = node.func.id

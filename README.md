@@ -8,8 +8,9 @@ a lot of core python concepts in ZScrtipt would be a major undertaking. This pro
 goal of quickly building up a Zscript with cleaner syntax and more predictable behaviors.
 
 
-> ##STATUS
-> Very much pre-alpha right now.  Contributors wanted!
+# IMPORTANT NOTE
+## Active development in this repo is now happening here: https://github.com/techartorg/zsc
+
 
 ## Usage
 

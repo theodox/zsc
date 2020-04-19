@@ -345,6 +345,8 @@ class Analyzer(ast.NodeVisitor):
             # it's a zbrush function.  de-alias in possible and return
             if func_name in self.funcs:
                 func_name = self.funcs.get(node.func.id, func_name)
+                sig = self.prepass.get_signature(func_name)
+                logger.info(f'zbrush signature for {func_name}:\n\t {sig}')
 
             func_string = f'[{func_name}{arg_string}]'
             self.stack.append(func_string)
@@ -494,9 +496,14 @@ class Analyzer(ast.NodeVisitor):
             return
 
         if isinstance(varval, ast.UnaryOp) and isinstance(varval.op, ast.USub):
-            # a = -b -> [VarSet, a, [NEG, #b]]
             target = self.as_literal(varval.operand)
-            self.stack.append (f"[{setter}, {varname}, [NEG, {target}]]")
+            if isinstance(varval.operand, ast.Num):
+                # a = -1 -> [VarSet, a, -1]
+                self.stack.append (f"[{setter}, {varname}, -{target}]")
+            else:  
+                # a = -b -> [VarSet, a, [NEG, #b]]
+                target = self.as_literal(varval.operand)
+                self.stack.append (f"[{setter}, {varname}, [NEG, {target}]]")
             return
 
         if not isinstance(varval, ast.Call):
@@ -608,7 +615,11 @@ class Analyzer(ast.NodeVisitor):
             self.stack.append(comp)
 
     def visit_While(self, node):
-
+        # ZScript does not support a while loop.  So, we
+        # loop a finite number of times checking the exit 
+        # condifition. 
+        # Todo:  rather than using int16 (65535) as the 
+        # loop, allow user to set it with a constant from code?
         breakout = ast.If(
             test=node.test,
             body=[ast.Expr(value=ast.Continue())],

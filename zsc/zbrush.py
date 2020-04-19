@@ -479,7 +479,7 @@ def IButton(ButtonText: str, PopupText: str = None, Commands: Callable = ..., Di
 # TODO: Pick up type annotations here
 
 
-def IClick(InterfacePath, *positions):
+def IClick(InterfacePath: str, *positions) -> None:
     """
     Emulates a click within a specified ZBrush interface item
 
@@ -487,7 +487,7 @@ def IClick(InterfacePath, *positions):
     pass
 
 
-def IClose(InterfacePath, ShowZoom=0, TargetParent=0):
+def IClose(InterfacePath: str, ShowZoom: int = 0, TargetParent: int = 0):
     """
     Closes an interface item.
 
@@ -495,7 +495,7 @@ def IClose(InterfacePath, ShowZoom=0, TargetParent=0):
     pass
 
 
-def IColorSet(Red, Green, Blue):
+def IColorSet(Red: int, Green: int, Blue: int):
     """
     Sets the active color to a new value
 
@@ -511,7 +511,7 @@ def IConfig(Config):
     pass
 
 
-def IDialog(Title, TitleMode=0, Icon='', LeftInset=0, RightInset=0, LeftTop=0, RightBottom=0):
+def IDialog(Title: str, TitleMode: int = 0, Icon: str = '', LeftInset: int = 0, RightInset: int = 0, LeftTop: int = 0, RightBottom: int = 0) -> int:
     """
     Adds a subpalette to ZBrush interface.
     Mode :
@@ -526,7 +526,7 @@ def IDialog(Title, TitleMode=0, Icon='', LeftInset=0, RightInset=0, LeftTop=0, R
     pass
 
 
-def IDisable(WindowPath, WindowID):
+def IDisable(WindowPath: str, WindowID: int) -> None:
     """
     Disables a ZScript interface item (can only be used for ZScript-generated interface items)
 
@@ -534,7 +534,7 @@ def IDisable(WindowPath, WindowID):
     pass
 
 
-def IEnable(WindowPath, WindowID):
+def IEnable(WindowPath: str, WindowID: int) -> None:
     """
     Enables a ZScript interface item (can only be used for ZScript-generated interface items)
 
@@ -542,7 +542,7 @@ def IEnable(WindowPath, WindowID):
     pass
 
 
-def IExists(InterfaceItemPath):
+def IExists(InterfaceItemPath: str) -> int:
     """
     Verifies that a specified interface item exists.
 
@@ -552,7 +552,7 @@ def IExists(InterfaceItemPath):
     pass
 
 
-def IFadeIn(FadeOutSpeed=0.5):
+def IFadeIn(FadeOutSpeed: float = 0.5) -> None:
     """
     Fades ZBrush window to black.
 
@@ -560,7 +560,7 @@ def IFadeIn(FadeOutSpeed=0.5):
     pass
 
 
-def IFadeOut(FadeOutSpeed=0.5):
+def IFadeOut(FadeOutSpeed: float = 0.5) -> None:
     """
     Fades ZBrush window to black.
 
@@ -568,14 +568,15 @@ def IFadeOut(FadeOutSpeed=0.5):
     pass
 
 
-def IFreeze(Commands: Callable = ..., FadeOutSpeed=0.05):
+def IFreeze(Commands: Callable = ..., FadeOutSpeed=0.05) -> None:
     """
     Disables interface updates.
 
     """
+    pass
 
 
-def IGet(InterfaceItemPath):
+def IGet(InterfaceItemPath: str) -> object:
     """
     Returns the current value of a ZBrush or ZScript interface item
 
@@ -585,7 +586,7 @@ def IGet(InterfaceItemPath):
     pass
 
 
-def IGetFlags(InterfaceItemPath):
+def IGetFlags(InterfaceItemPath: str) -> int:
     """
     Returns the status flags of the specified interface item
 
@@ -595,7 +596,7 @@ def IGetFlags(InterfaceItemPath):
     pass
 
 
-def IGetHotkey(InterfaceItemPath):
+def IGetHotkey(InterfaceItemPath: str) -> str:
     """
     Returns the hotkey of the specified interface item
 
@@ -605,7 +606,7 @@ def IGetHotkey(InterfaceItemPath):
     pass
 
 
-def IGetID(InterfaceItemPath):
+def IGetID(InterfaceItemPath: str) -> str:
     """
     Returns the window ID code of the specified interface item
 
@@ -615,7 +616,7 @@ def IGetID(InterfaceItemPath):
     pass
 
 
-def IGetInfo(InterfaceItemPath):
+def IGetInfo(InterfaceItemPath: str) -> str:
     """
     Returns the info (popup info) of the specified interface item
 
@@ -625,7 +626,7 @@ def IGetInfo(InterfaceItemPath):
     pass
 
 
-def IGetMax(InterfaceItemPath):
+def IGetMax(InterfaceItemPath: str) -> float:
     """
     Returns the maximum possible value of a ZBrush or ZScript interface item
 
@@ -635,7 +636,7 @@ def IGetMax(InterfaceItemPath):
     pass
 
 
-def IGetMin(InterfaceItemPath):
+def IGetMin(InterfaceItemPath: str) -> float:
     """
     Returns the minimum possible value of a ZBrush or ZScript interface item
 
@@ -645,7 +646,7 @@ def IGetMin(InterfaceItemPath):
     pass
 
 
-def IGetSecondary(InterfaceItemPath):
+def IGetSecondary(InterfaceItemPath: str) -> float:
     """
     Returns the the scondary value of a 2D interface item
 
@@ -654,7 +655,7 @@ def IGetSecondary(InterfaceItemPath):
     pass
 
 
-def IGetStatus(InterfaceItemPath):
+def IGetStatus(InterfaceItemPath: str) -> float:
     """
     Returns the Enabled/Disabled status of a ZBrush or ZScript interface item
 
@@ -665,7 +666,7 @@ def IGetStatus(InterfaceItemPath):
     pass
 
 
-def IGetTitle(InterfaceItemPath, ReturnFullPath):
+def IGetTitle(InterfaceItemPath: str, ReturnFullPath: int) -> str:
     """
     Returns the title of the specified interface item
 
@@ -675,7 +676,7 @@ def IGetTitle(InterfaceItemPath, ReturnFullPath):
     pass
 
 
-def IHeight(InterfaceItemPath):
+def IHeight(InterfaceItemPath: str) -> int:
     """
     Returns the pixel-height of an interface item.
 
@@ -685,7 +686,7 @@ def IHeight(InterfaceItemPath):
     pass
 
 
-def IHide(InterfaceItemPath, ShowZoomRectangles=0, TargetParentWindow=0):
+def IHide(InterfaceItemPath: str, ShowZoomRectangles: int = 0, TargetParentWindow: int = 0) -> None:
     """
     Hides an interface item.
 
@@ -693,7 +694,7 @@ def IHide(InterfaceItemPath, ShowZoomRectangles=0, TargetParentWindow=0):
     pass
 
 
-def IHPos(InterfaceItemPath, UseGlobalCoords=0):
+def IHPos(InterfaceItemPath: str, UseGlobalCoords: int = 0) -> int:
     """
     Returns the H position of the interface item in Canvas or Global coordinates.
 
@@ -703,7 +704,8 @@ def IHPos(InterfaceItemPath, UseGlobalCoords=0):
     pass
 
 
-def IKeyPress(KeyCode, Commands: Callable = ..., HCursor=None, VCursor=None):
+# how to annotate this?
+def IKeyPress(KeyCode: str, Commands: Callable = ..., HCursor=None, VCursor=None):
     """
     Simulates a key press
 
@@ -719,14 +721,14 @@ def ILock(WindowPath, WindowID):
     pass
 
 
-def Image(FileName, Align, ResizedWidth):
+def Image(FileName: str, Align: int, ResizedWidth: int) -> None:
     """
     Loads and displays an image
     Align (0=center 1=left 2=right
     """
 
 
-def IMaximize(InterfaceItemPath, MaximizeSubPalettes):
+def IMaximize(InterfaceItemPath: str, MaximizeSubPalettes: int) -> None:
     """
     Locates an interface item and (if possible) maximize its size.
 
@@ -734,7 +736,7 @@ def IMaximize(InterfaceItemPath, MaximizeSubPalettes):
     pass
 
 
-def IMinimize(InterfaceItemPath, MinimizeSubPalettes):
+def IMinimize(InterfaceItemPath: str, MinimizeSubPalettes: int) -> None:
     """
     Locates an interface item and (if possible) minimize its size.
 
@@ -742,7 +744,7 @@ def IMinimize(InterfaceItemPath, MinimizeSubPalettes):
     pass
 
 
-def IModGet(InterfaceItemPath):
+def IModGet(InterfaceItemPath: str) -> int:
     """
     Returns the current modifiers binary state of a ZBrush or ZScript interface item
 
@@ -752,7 +754,7 @@ def IModGet(InterfaceItemPath):
     pass
 
 
-def IModSet(InterfaceItemPath, value):
+def IModSet(InterfaceItemPath: str, value:int) ->None:
     """
     Sets the modifiers binary value of a ZBrush or a ZScript interface item
 

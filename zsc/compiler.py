@@ -119,6 +119,8 @@ class Analyzer(ast.NodeVisitor):
         self.stack.append("")
         self.stack.append(f'[Loop, {loop_max},')
         loop_parser = self.sub_parser(*node.body)
+        if self.context:
+            loop_parser.indent += 1
 
         # loop body
         self.stack.append(loop_parser.format())
@@ -343,6 +345,8 @@ class Analyzer(ast.NodeVisitor):
             # it's a zbrush function.  de-alias in possible and return
             if func_name in self.funcs:
                 func_name = self.funcs.get(node.func.id, func_name)
+                sig = self.prepass.get_signature(func_name)
+                logger.info(f'zbrush signature for {func_name}:\n\t {sig}')
 
             func_string = f'[{func_name}{arg_string}]'
             self.stack.append(func_string)
@@ -492,9 +496,14 @@ class Analyzer(ast.NodeVisitor):
             return
 
         if isinstance(varval, ast.UnaryOp) and isinstance(varval.op, ast.USub):
-            # a = -b -> [VarSet, a, [NEG, #b]]
             target = self.as_literal(varval.operand)
-            self.stack.append (f"[{setter}, {varname}, [NEG, {target}]]")
+            if isinstance(varval.operand, ast.Num):
+                # a = -1 -> [VarSet, a, -1]
+                self.stack.append (f"[{setter}, {varname}, -{target}]")
+            else:  
+                # a = -b -> [VarSet, a, [NEG, #b]]
+                target = self.as_literal(varval.operand)
+                self.stack.append (f"[{setter}, {varname}, [NEG, {target}]]")
             return
 
         if not isinstance(varval, ast.Call):
@@ -606,7 +615,11 @@ class Analyzer(ast.NodeVisitor):
             self.stack.append(comp)
 
     def visit_While(self, node):
-
+        # ZScript does not support a while loop.  So, we
+        # loop a finite number of times checking the exit 
+        # condifition. 
+        # Todo:  rather than using int16 (65535) as the 
+        # loop, allow user to set it with a constant from code?
         breakout = ast.If(
             test=node.test,
             body=[ast.Expr(value=ast.Continue())],
@@ -622,13 +635,16 @@ class Analyzer(ast.NodeVisitor):
                           ctx=ast.Load(), args=[ast.Num(n=65534)]),
             body=body_block
         )
-        try:
-            self.indent -= 1
-            subp = self.sub_parser(new_node)
+        #try:
+            #self.indent -= 1
+        subp = self.sub_parser(new_node)
+        if not self.context:
             subp.indent -= 1
-            self.stack.append(subp.format())
-        finally:
-            self.indent += 1
+            #if not self.context:
+            #    subp.indent -= 1
+        self.stack.append(subp.format())
+        #finally:
+            #self.indent += 1
 
 
 
@@ -649,7 +665,7 @@ class Analyzer(ast.NodeVisitor):
 
     def sub_parser(self, *args, **kwargs):
         if kwargs.get('func'):
-            sub_parser = FunctionAnalyzer(context=self)
+            sub_parser = FunctionAnalyzer(context=self, prepass=self.prepass)
         else:
             sub_parser = Analyzer(context=self)
         sub_parser.indent += 1
@@ -664,8 +680,21 @@ class FunctionAnalyzer(Analyzer):
     """
 
     def visit_Name(self, node):
-        # Q - should this use the # prefix?
-        self.stack.append(node.id)
+        if self.prepass.is_user_function(node):
+            # for UI Elements or other items that expect command lists,
+            # python code should make a no-arg function and pass it 
+            # directly, ie,
+            # 
+            #   def test():
+            #       zbrush.Note("OK") 
+            #
+            #   zBrush.IButton("Test", "", test)
+
+            self.stack.append(f"[RoutineCall, {node.id}]")
+        else:
+            # for variables passed as arguments to a function, use the # prefix
+            self.stack.append(f"#{node.id}")
+
 
 
 def compile(filename, out_filename=''):

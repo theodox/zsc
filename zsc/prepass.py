@@ -54,7 +54,10 @@ class Prepass(ast.NodeVisitor):
         self.intrinsics = {'max', 'min', 'len', 'abs', 'bool', 'int', 'float', 'frac'}
 
     def get_call_name(self, node):
-
+        """
+        returns the prefix and the string name of the function
+        represented by <Node>
+        """
         if (not isinstance(node, ast.Call)):
             if hasattr(node, 'id'):
                 return '', node.id
@@ -169,9 +172,6 @@ class Prepass(ast.NodeVisitor):
         prefix, name = self.get_call_name(node)
         return self.zbrush_aliases.get(name)
 
-
-
-
     def has_return_type(self, node):
 
         if self.is_user_function(node):
@@ -192,3 +192,7 @@ class Prepass(ast.NodeVisitor):
 
         return False
         
+
+    def get_signature(self, funcname):
+        sig = self.zbrush_functions[funcname]
+        return sig
